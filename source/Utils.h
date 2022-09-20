@@ -12,8 +12,24 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
+			float A{ Vector3::Dot(ray.direction, ray.direction) };
+			float B{ Vector3::Dot((2 * ray.direction), (ray.origin - sphere.origin)) };
+			float C{ Vector3::Dot((ray.origin - sphere.origin), (ray.origin - sphere.origin)) - powf(sphere.radius,2) };
+
+			float discriminant{ powf(B,2) - 4 * A * C };
+			float tMin{ (-B + sqrtf(discriminant))/2*A };
+			float tMax{ (-B - sqrtf(discriminant))/2*A };
+
+			float intersectionMax{ powf(tMax,2) * A + tMax * B + C };
+			float intersectionMin{ powf(tMin,2) * A + tMin * B + C };
+			if (discriminant > 0  && (intersectionMax > 0 || intersectionMin > 0)) {
+				hitRecord.didHit = true;
+				hitRecord.materialIndex = sphere.materialIndex;
+				hitRecord.t = tMax - tMin;
+				hitRecord.origin = ray.origin;
+				hitRecord.normal = ray.direction;
+				return true;
+			}
 			return false;
 		}
 
@@ -27,9 +43,17 @@ namespace dae
 		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
-			return false;
+			float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal)/ Vector3::Dot(ray.direction, plane.normal) };
+
+			Vector3 p{ ray.origin + t * ray.direction };
+			if (t > ray.min && t < ray.max) {
+				hitRecord.didHit = true;
+				hitRecord.materialIndex = plane.materialIndex;
+				hitRecord.t = t;
+				hitRecord.origin = plane.origin;
+				hitRecord.normal = ray.direction;
+				return true;
+			}
 		}
 
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray)

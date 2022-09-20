@@ -27,6 +27,10 @@ void Renderer::Render(Scene* pScene) const
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
+	float screenWidth{ static_cast<float>(m_Width) };
+	float screenHeight{ static_cast<float>(m_Height) };
+	float aspectRatio{ screenWidth / screenHeight };
+
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
@@ -35,7 +39,65 @@ void Renderer::Render(Scene* pScene) const
 			gradient += py / static_cast<float>(m_Width);
 			gradient /= 2.0f;
 
-			ColorRGB finalColor{ gradient, gradient, gradient };
+			float cX{ (((2 * (px + 0.5f)) / screenWidth) - 1) * aspectRatio };
+			float cY{ 1 - (2 * py / screenHeight) };
+
+			//ColorRGB finalColor{ gradient, gradient, gradient };
+
+			Vector3 rayDirection{ cX, cY, 1 };
+			#pragma region Gradient screens
+			//Vector3 normalizedRayDirection{ rayDirection.Normalized() };
+
+			//Vector3 cameraOrigin{ 0, 0, 0 };
+
+			//Ray hitRay{ cameraOrigin, normalizedRayDirection };
+			//ColorRGB finalColor{ normalizedRayDirection.x, normalizedRayDirection.y, normalizedRayDirection.z };
+			#pragma endregion
+
+			#pragma region Red sphere
+			//Ray viewRay{ {0,0,0}, rayDirection };
+			//ColorRGB finalColor{};
+			//HitRecord closestHit{};
+			//Sphere testSphere{ {0.f,0.f,100.f}, 50.f, 0 };
+
+			//GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
+			////if (closestHit.didHit) {
+			////	finalColor = materials[closestHit.materialIndex]->Shade();
+			////}
+			//if (closestHit.didHit) {
+			//	const float scaled_t = (closestHit.t - 50.f) / 40.f;
+			//	finalColor = { scaled_t, scaled_t, scaled_t };
+			//}
+			#pragma endregion
+
+			#pragma region Plane
+			//Ray viewRay{ {0,0,0}, rayDirection };
+			//ColorRGB finalColor{};
+			//HitRecord closestHit{};
+			//Plane testPlane{ {0.f,-50.f,0.f}, {0.f,1.f,0.f}, 0 };
+			//GeometryUtils::HitTest_Plane(testPlane, viewRay, closestHit);
+			///*if (closestHit.didHit) {
+			//	finalColor = materials[closestHit.materialIndex]->Shade();
+			//}*/
+			//if (closestHit.didHit) {
+			//	const float scaled_t = (closestHit.t - 50.f) / 40.f;
+			//	finalColor = { scaled_t, scaled_t, scaled_t };
+			//}
+			#pragma endregion
+
+			#pragma region 2 Spheres
+			Ray viewRay{ {0, 0, 0}, rayDirection };
+			ColorRGB finalColor{};
+			HitRecord closestHit{};
+			pScene->GetClosestHit(viewRay, closestHit);
+			if (closestHit.didHit) {
+				finalColor = materials[closestHit.materialIndex]->Shade();
+			}
+			else {
+				finalColor = colors::Black;
+			}
+			#pragma endregion
+
 
 			//Update Color in Buffer
 			finalColor.MaxToOne();
@@ -45,6 +107,7 @@ void Renderer::Render(Scene* pScene) const
 				static_cast<uint8_t>(finalColor.g * 255),
 				static_cast<uint8_t>(finalColor.b * 255)
 			);
+
 		}
 	}
 
