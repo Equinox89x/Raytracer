@@ -17,18 +17,20 @@ namespace dae
 			float C{ Vector3::Dot((ray.origin - sphere.origin), (ray.origin - sphere.origin)) - powf(sphere.radius,2) };
 
 			float discriminant{ powf(B,2) - 4 * A * C };
-			float tMin{ (-B + sqrtf(discriminant))/2*A };
-			float tMax{ (-B - sqrtf(discriminant))/2*A };
+			float tMax{ (-B + sqrtf(discriminant))/2*A };
+			float tMin{ (-B - sqrtf(discriminant))/2*A };
 
 			float intersectionMax{ powf(tMax,2) * A + tMax * B + C };
 			float intersectionMin{ powf(tMin,2) * A + tMin * B + C };
-			if (discriminant > 0  && (intersectionMax > 0 || intersectionMin > 0)) {
-				hitRecord.didHit = true;
-				hitRecord.materialIndex = sphere.materialIndex;
-				hitRecord.t = tMax - tMin;
-				hitRecord.origin = ray.origin;
-				hitRecord.normal = ray.direction;
-				return true;
+			if (discriminant > 0) {
+				if(tMin > ray.min && tMin < ray.max) {
+					hitRecord.didHit = true;
+					hitRecord.materialIndex = sphere.materialIndex;
+					hitRecord.t = tMin;
+					hitRecord.origin = ray.origin;
+					hitRecord.normal = ray.direction;
+					return true;
+				}	
 			}
 			return false;
 		}

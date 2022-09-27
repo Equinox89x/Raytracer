@@ -31,31 +31,44 @@ void Renderer::Render(Scene* pScene) const
 	float screenHeight{ static_cast<float>(m_Height) };
 	float aspectRatio{ screenWidth / screenHeight };
 
+	float fov{ tan(camera.fovAngle / 2) };
+	Matrix camToWorld{ camera.CalculateCameraToWorld() };
+
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
 		{
-			float gradient = px / static_cast<float>(m_Width);
+
+			#pragma region Base
+			/*float gradient = px / static_cast<float>(m_Width);
 			gradient += py / static_cast<float>(m_Width);
 			gradient /= 2.0f;
+			ColorRGB finalColor{ gradient, gradient, gradient };*/
 
-			float cX{ (((2 * (px + 0.5f)) / screenWidth) - 1) * aspectRatio };
-			float cY{ 1 - (2 * py / screenHeight) };
+			//Scene W1
+			//float cX{ (((2 * (px + 0.5f)) / screenWidth) - 1) * aspectRatio };
+			//float cY{ 1 - (2 * py / screenHeight) };
+			//Vector3 rayDirection{ cX, cY, 1 };
+			#pragma endregion
 
-			//ColorRGB finalColor{ gradient, gradient, gradient };
+			//Scene W2
+			float cX{ (((2 * (px + 0.5f)) / screenWidth) - 1) * (aspectRatio * fov) };
+			float cY{ (1 - (2 * py / screenHeight)) * fov };
 
 			Vector3 rayDirection{ cX, cY, 1 };
-			#pragma region Gradient screens
-			//Vector3 normalizedRayDirection{ rayDirection.Normalized() };
+			Vector3 rayDirectionNormalised{ rayDirection.Normalized()};
 
+			Vector3 transformedCamera{ camToWorld.TransformVector(rayDirectionNormalised) };
+
+			#pragma region Gradient screens
 			//Vector3 cameraOrigin{ 0, 0, 0 };
 
-			//Ray hitRay{ cameraOrigin, normalizedRayDirection };
-			//ColorRGB finalColor{ normalizedRayDirection.x, normalizedRayDirection.y, normalizedRayDirection.z };
+			//Ray hitRay{ cameraOrigin, rayDirectionNormalised };
+			//ColorRGB finalColor{ rayDirectionNormalised.x, rayDirectionNormalised.y, rayDirectionNormalised.z };
 			#pragma endregion
 
 			#pragma region Red sphere
-			//Ray viewRay{ {0,0,0}, rayDirection };
+			//Ray viewRay{ {0,0,0}, rayDirectionNormalised };
 			//ColorRGB finalColor{};
 			//HitRecord closestHit{};
 			//Sphere testSphere{ {0.f,0.f,100.f}, 50.f, 0 };
@@ -71,7 +84,7 @@ void Renderer::Render(Scene* pScene) const
 			#pragma endregion
 
 			#pragma region Plane
-			//Ray viewRay{ {0,0,0}, rayDirection };
+			//Ray viewRay{ {0,0,0}, rayDirectionNormalised };
 			//ColorRGB finalColor{};
 			//HitRecord closestHit{};
 			//Plane testPlane{ {0.f,-50.f,0.f}, {0.f,1.f,0.f}, 0 };
@@ -85,8 +98,11 @@ void Renderer::Render(Scene* pScene) const
 			//}
 			#pragma endregion
 
-			#pragma region 2 Spheres
-			Ray viewRay{ {0, 0, 0}, rayDirection };
+			#pragma region lab weeks
+			//W1
+			//Ray viewRay{ camera.origin, rayDirectionNormalised };
+			//W2
+			Ray viewRay{ camera.origin, transformedCamera };
 			ColorRGB finalColor{};
 			HitRecord closestHit{};
 			pScene->GetClosestHit(viewRay, closestHit);
@@ -97,7 +113,6 @@ void Renderer::Render(Scene* pScene) const
 				finalColor = colors::Black;
 			}
 			#pragma endregion
-
 
 			//Update Color in Buffer
 			finalColor.MaxToOne();

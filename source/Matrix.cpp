@@ -114,30 +114,28 @@ namespace dae {
 
 	Matrix Matrix::CreateRotationX(float pitch)
 	{
-		//todo W1
-		assert(false && "Not Implemented Yet");
-		return {};
+		float radians = pitch * 3.1415926535f / 180;
+		return { Vector3{cos(radians), sin(radians), 0 }, Vector3::UnitY, Vector3::UnitZ, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotationY(float yaw)
 	{
-		//todo W1
-		assert(false && "Not Implemented Yet");
-		return {};
+		float radians = yaw * 3.1415926535f / 180;
+		return { Vector3::UnitX, Vector3{cos(radians), sin(radians), 0 }, Vector3::UnitZ, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotationZ(float roll)
 	{
-		//todo W1
-		assert(false && "Not Implemented Yet");
-		return {};
+		float radians = roll * 3.1415926535f / 180;
+		return { Vector3::UnitX, Vector3::UnitY, Vector3{cos(radians), sin(radians), 0 }, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotation(const Vector3& r)
 	{
-		//todo W1
-		assert(false && "Not Implemented Yet");
-		return {};
+		float radiansX = r.x * 3.1415926535f / 180;
+		float radiansY = r.y * 3.1415926535f / 180;
+		float radiansZ = r.z * 3.1415926535f / 180;
+		return { Vector3{cos(radiansX), sin(radiansX), 0 }, Vector3{cos(radiansY), sin(radiansY), 0 }, Vector3{cos(radiansZ), sin(radiansZ), 0 }, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotation(float pitch, float yaw, float roll)
@@ -147,9 +145,7 @@ namespace dae {
 
 	Matrix Matrix::CreateScale(float sx, float sy, float sz)
 	{
-		//todo W1
-		assert(false && "Not Implemented Yet");
-		return {};
+		return { Vector3::UnitX * sx, Vector3::UnitY * sy, Vector3::UnitZ * sz, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateScale(const Vector3& s)

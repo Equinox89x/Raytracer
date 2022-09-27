@@ -22,7 +22,8 @@ namespace dae
 		Vector3 origin{};
 		float fovAngle{90.f};
 
-		Vector3 forward{Vector3::UnitZ};
+		//Vector3 forward{Vector3::UnitZ};
+		Vector3 forward{0.266f, -0.453f, 0.860f};
 		Vector3 up{Vector3::UnitY};
 		Vector3 right{Vector3::UnitX};
 
@@ -34,9 +35,16 @@ namespace dae
 
 		Matrix CalculateCameraToWorld()
 		{
-			//todo: W2
-			assert(false && "Not Implemented Yet");
-			return {};
+			Vector3 right{ Vector3::Cross(up, forward).Normalized() };
+			Vector3 upVector{ Vector3::Cross(forward, right).Normalized() };
+
+			Vector4 up4{ upVector, 0 };
+			Vector4 right4{ right, 0 };
+			Vector4 forward4{ forward, 0 };;
+			Vector4 position{ origin, 1 };
+
+			//ONB Matrix
+			return Matrix { right4, up4, forward4, position };
 		}
 
 		void Update(Timer* pTimer)
@@ -50,6 +58,7 @@ namespace dae
 			//Mouse Input
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
+
 
 			//todo: W2
 			//assert(false && "Not Implemented Yet");
