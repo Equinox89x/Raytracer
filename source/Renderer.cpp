@@ -117,6 +117,20 @@ void Renderer::Render(Scene* pScene) const
 			//Update Color in Buffer
 			finalColor.MaxToOne();
 
+			for (auto &light : lights)
+			{
+				Ray lightRay{ closestHit.origin + (closestHit.normal*0.0001f),
+					LightUtils::GetDirectionToLight(light,closestHit.origin).Normalized(),
+					0.0001f,
+					LightUtils::GetDirectionToLight(light,closestHit.origin).Magnitude() 
+				};
+
+				if (pScene->DoesHit(lightRay))
+				{
+					finalColor *= 0.5f;
+				}
+			}
+
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
 				static_cast<uint8_t>(finalColor.r * 255),
 				static_cast<uint8_t>(finalColor.g * 255),

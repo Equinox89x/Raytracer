@@ -8,6 +8,7 @@ namespace dae
 {
 	namespace GeometryUtils
 	{
+
 #pragma region Sphere HitTest
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
@@ -20,17 +21,23 @@ namespace dae
 			float tMax{ (-B + sqrtf(discriminant))/2*A };
 			float tMin{ (-B - sqrtf(discriminant))/2*A };
 
-			float intersectionMax{ powf(tMax,2) * A + tMax * B + C };
-			float intersectionMin{ powf(tMin,2) * A + tMin * B + C };
 			if (discriminant > 0) {
 				if(tMin > ray.min && tMin < ray.max) {
 					hitRecord.didHit = true;
 					hitRecord.materialIndex = sphere.materialIndex;
 					hitRecord.t = tMin;
-					hitRecord.origin = ray.origin;
-					hitRecord.normal = ray.direction;
+					hitRecord.origin = ray.origin + tMin * ray.direction;
 					return true;
 				}	
+				else if (tMax > ray.min && tMax < ray.max)
+				{
+					hitRecord.didHit = true;
+					hitRecord.materialIndex = sphere.materialIndex;
+					hitRecord.t = tMax;
+					hitRecord.origin = ray.origin + tMax * ray.direction;
+					return true;
+
+				}
 			}
 			return false;
 		}
@@ -42,20 +49,21 @@ namespace dae
 		}
 #pragma endregion
 #pragma region Plane HitTest
-		//PLANE HIT-TESTS
+//		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal)/ Vector3::Dot(ray.direction, plane.normal) };
 
-			Vector3 p{ ray.origin + t * ray.direction };
 			if (t > ray.min && t < ray.max) {
 				hitRecord.didHit = true;
 				hitRecord.materialIndex = plane.materialIndex;
 				hitRecord.t = t;
-				hitRecord.origin = plane.origin;
-				hitRecord.normal = ray.direction;
+				hitRecord.origin = ray.origin + t * ray.direction;
+				hitRecord.normal = plane.normal;
 				return true;
 			}
+
+			return false;
 		}
 
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray)
@@ -64,6 +72,7 @@ namespace dae
 			return HitTest_Plane(plane, ray, temp, true);
 		}
 #pragma endregion
+		
 #pragma region Triangle HitTest
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
@@ -100,9 +109,10 @@ namespace dae
 		//Direction from target to light
 		inline Vector3 GetDirectionToLight(const Light& light, const Vector3 origin)
 		{
-			//todo W3
-			assert(false && "No Implemented Yet!");
-			return {};
+			if (light.type == dae::LightType::Directional) {
+				return light.direction;
+			}
+			return light.origin - origin;
 		}
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
