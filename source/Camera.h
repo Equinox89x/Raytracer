@@ -5,6 +5,7 @@
 
 #include "Math.h"
 #include "Timer.h"
+#include <iostream>
 
 namespace dae
 {
@@ -29,13 +30,14 @@ namespace dae
 
 		float totalPitch{0.f};
 		float totalYaw{0.f};
+		const float rotationSpeed{ 0.03f };
 
 		Matrix cameraToWorld{};
 
 
 		Matrix CalculateCameraToWorld()
 		{
-			Vector3 right{ Vector3::Cross(up, forward).Normalized() };
+			Vector3 right{ Vector3::Cross(Vector3::UnitY, forward).Normalized() };
 			Vector3 upVector{ Vector3::Cross(forward, right).Normalized() };
 
 			Vector4 up4{ upVector, 0 };
@@ -58,10 +60,29 @@ namespace dae
 			//Mouse Input
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
+			
 
+			if (pKeyboardState[SDL_SCANCODE_W]) {
+				origin.z += (1*deltaTime);
+			}
+			if(pKeyboardState[SDL_SCANCODE_S]) {
+				origin.z -= (1*deltaTime);
+			}
 
-			//todo: W2
-			//assert(false && "Not Implemented Yet");
+			if(pKeyboardState[SDL_SCANCODE_A]) {
+				origin.x -= (1*deltaTime);
+			}
+			if(pKeyboardState[SDL_SCANCODE_D]) {
+				origin.x += (1*deltaTime);
+			}
+			
+			if (SDL_BUTTON(mouseState) == 1) {
+				totalPitch -= mouseX * deltaTime * rotationSpeed;
+				totalYaw -= mouseY * deltaTime * rotationSpeed;
+				Matrix finalRot{ Matrix::CreateRotation(totalPitch, totalYaw, 1) };
+				forward = finalRot.TransformVector(Vector3::UnitZ);
+				forward.Normalize();
+			}
 		}
 	};
 }

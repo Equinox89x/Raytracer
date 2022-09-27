@@ -114,28 +114,34 @@ namespace dae {
 
 	Matrix Matrix::CreateRotationX(float pitch)
 	{
-		float radians = pitch * 3.1415926535f / 180;
-		return { Vector3{cos(radians), sin(radians), 0 }, Vector3::UnitY, Vector3::UnitZ, Vector3{0,0,0} };
+		Vector3 first{ cosf(pitch),0,sinf(pitch) };
+		Vector3 second{ 0, 1, 0 };
+		Vector3 third{ -sinf(pitch), 0, cosf(pitch) };
+		return { first, second, third, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotationY(float yaw)
 	{
-		float radians = yaw * 3.1415926535f / 180;
-		return { Vector3::UnitX, Vector3{cos(radians), sin(radians), 0 }, Vector3::UnitZ, Vector3{0,0,0} };
+		Vector3 first{ 1,0,0 };
+		Vector3 second{ 0,cosf(yaw), -sinf(yaw) };
+		Vector3 third{ 0,sinf(yaw),cosf(yaw) };
+		return { first, second, third, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotationZ(float roll)
 	{
-		float radians = roll * 3.1415926535f / 180;
-		return { Vector3::UnitX, Vector3::UnitY, Vector3{cos(radians), sin(radians), 0 }, Vector3{0,0,0} };
+		Vector3 first{ cosf(roll), -sinf(roll), 0 };
+		Vector3 second{ sinf(roll), cosf(roll), 0 };
+		Vector3 third{ 0, 0, 1 };
+		return { first, second, third, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotation(const Vector3& r)
-	{
-		float radiansX = r.x * 3.1415926535f / 180;
-		float radiansY = r.y * 3.1415926535f / 180;
-		float radiansZ = r.z * 3.1415926535f / 180;
-		return { Vector3{cos(radiansX), sin(radiansX), 0 }, Vector3{cos(radiansY), sin(radiansY), 0 }, Vector3{cos(radiansZ), sin(radiansZ), 0 }, Vector3{0,0,0} };
+	{		
+		Matrix first{ CreateRotationX(r.x) };
+		Matrix second{ CreateRotationY(r.y) };
+		Matrix third{ CreateRotationZ(r.z) };
+		return third * second * first;
 	}
 
 	Matrix Matrix::CreateRotation(float pitch, float yaw, float roll)
