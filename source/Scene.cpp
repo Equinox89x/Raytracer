@@ -206,12 +206,12 @@ namespace dae {
 		m_Camera.origin = { 0.f,3.f,-9.f };
 		m_Camera.fovAngle = 45.f;
 
-		const auto matCT_GrayRoughMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, 1.f));
-		const auto matCT_GrayMediumMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .6f));
-		const auto matCT_GraySmoothMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, 1.f));
-		const auto matCT_GrayRoughPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, 0.f, 1.f));
-		const auto matCT_GrayMediumPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, 0.f, .6f));
-		const auto matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, 0.f, 1.f));
+		const auto matCT_GrayRoughMetal = AddMaterial(new Material_CookTorrence({ .95f, .93f, .88f }, 1.f, 1.f));
+		const auto matCT_GrayMediumMetal = AddMaterial(new Material_CookTorrence({ .95f, .93f, .88f }, 1.f, .6f));
+		const auto matCT_GraySmoothMetal = AddMaterial(new Material_CookTorrence({ .95f, .93f, .88f }, 1.f, .1f));
+		const auto matCT_GrayRoughPlastic = AddMaterial(new Material_CookTorrence({ .95f, .93f, .88f }, 0.f, 1.f));
+		const auto matCT_GrayMediumPlastic = AddMaterial(new Material_CookTorrence({ .95f, .93f, .88f }, 0.f, .6f));
+		const auto matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .95f, .93f, .88f }, 0.f, .1f));
 
 		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, .57f, .57f }, 1.f));
 		
@@ -223,6 +223,13 @@ namespace dae {
 		AddPlane({ -5.f, 0.f, 0.f }, { 1.f, 0.f, 0.f  }, matLambert_GrayBlue); //left
 
 		//Spheres
+		/*const auto matLambertPhong1 = AddMaterial(new Material_LambertPhong(colors::Blue, 0.5f, 0.5f, 3.f));
+		const auto matLambertPhong2 = AddMaterial(new Material_LambertPhong(colors::Blue, 0.5f, 0.5f, 15.f));
+		const auto matLambertPhong3 = AddMaterial(new Material_LambertPhong(colors::Blue, 0.5f, 0.5f, 50.f));
+		AddSphere({ -1.75f, 1.f, 0.f }, .75f, matLambertPhong1);
+		AddSphere({ 0.f,    1.f, 0.f }, .75f, matLambertPhong2);
+		AddSphere({ 1.75f,  1.f, 0.f }, .75f, matLambertPhong3);*/
+
 		AddSphere({ -1.75f, 1.f, 0.f }, .75f, matCT_GrayRoughMetal);
 		AddSphere({ 0.f,    1.f, 0.f }, .75f, matCT_GrayMediumMetal);
 		AddSphere({ 1.75f,  1.f, 0.f }, .75f, matCT_GraySmoothMetal);

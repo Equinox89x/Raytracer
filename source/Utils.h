@@ -89,10 +89,11 @@ namespace dae
 			float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal)/ Vector3::Dot(ray.direction, plane.normal) };
 
 			if (t > ray.min && t < ray.max) {
+				Vector3 I{ ray.origin + t * ray.direction };
 				hitRecord.didHit = true;
 				hitRecord.materialIndex = plane.materialIndex;
 				hitRecord.t = t;
-				hitRecord.origin = ray.origin + t * ray.direction;
+				hitRecord.origin = I;
 				hitRecord.normal = plane.normal;
 				return true;
 			}
@@ -151,7 +152,7 @@ namespace dae
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
 		{
-			return light.color * light.intensity/powf((light.origin - target).Magnitude(), 2);
+			return light.color * light.intensity/Square((light.origin - target).Magnitude());
 		}
 	}
 
