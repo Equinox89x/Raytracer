@@ -12,13 +12,14 @@
 
 using namespace dae;
 
-Renderer::Renderer(SDL_Window * pWindow) :
+Renderer::Renderer(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
 	m_pBuffer(SDL_GetWindowSurface(pWindow))
 {
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
 	m_pBufferPixels = static_cast<uint32_t*>(m_pBuffer->pixels);
+	offset = 0.0001f;
 }
 
 void Renderer::Render(Scene* pScene) const
@@ -34,12 +35,14 @@ void Renderer::Render(Scene* pScene) const
 	float fov{ tan(camera.fovAngle / 2) };
 	Matrix camToWorld{ camera.CalculateCameraToWorld() };
 
+	size_t lightsSize{ lights.size() };
+
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
 		{
 
-			#pragma region Base
+#pragma region Base
 			/*float gradient = px / static_cast<float>(m_Width);
 			gradient += py / static_cast<float>(m_Width);
 			gradient /= 2.0f;
@@ -49,87 +52,120 @@ void Renderer::Render(Scene* pScene) const
 			//float cX{ (((2 * (px + 0.5f)) / screenWidth) - 1) * aspectRatio };
 			//float cY{ 1 - (2 * py / screenHeight) };
 			//Vector3 rayDirection{ cX, cY, 1 };
-			#pragma endregion
+#pragma endregion
 
-			//Scene W2
+//Scene W2
 			float cX{ (((2 * (px + 0.5f)) / screenWidth) - 1) * (aspectRatio * fov) };
 			float cY{ (1 - (2 * py / screenHeight)) * fov };
 
 			Vector3 rayDirection{ cX, cY, 1 };
-			Vector3 rayDirectionNormalised{ rayDirection.Normalized()};
+			Vector3 rayDirectionNormalised{ rayDirection.Normalized() };
 
 			Vector3 transformedCamera{ camToWorld.TransformVector(rayDirectionNormalised) };
 
-			#pragma region Gradient screens
+#pragma region unused
+#pragma region Gradient screens
 			//Vector3 cameraOrigin{ 0, 0, 0 };
 
 			//Ray hitRay{ cameraOrigin, rayDirectionNormalised };
 			//ColorRGB finalColor{ rayDirectionNormalised.x, rayDirectionNormalised.y, rayDirectionNormalised.z };
-			#pragma endregion
+#pragma endregion
 
-			#pragma region Red sphere
-			//Ray viewRay{ {0,0,0}, rayDirectionNormalised };
-			//ColorRGB finalColor{};
-			//HitRecord closestHit{};
-			//Sphere testSphere{ {0.f,0.f,100.f}, 50.f, 0 };
+#pragma region Red sphere
+//Ray viewRay{ {0,0,0}, rayDirectionNormalised };
+//ColorRGB finalColor{};
+//HitRecord closestHit{};
+//Sphere testSphere{ {0.f,0.f,100.f}, 50.f, 0 };
 
-			//GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
-			////if (closestHit.didHit) {
-			////	finalColor = materials[closestHit.materialIndex]->Shade();
-			////}
-			//if (closestHit.didHit) {
-			//	const float scaled_t = (closestHit.t - 50.f) / 40.f;
-			//	finalColor = { scaled_t, scaled_t, scaled_t };
-			//}
-			#pragma endregion
+//GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
+////if (closestHit.didHit) {
+////	finalColor = materials[closestHit.materialIndex]->Shade();
+////}
+//if (closestHit.didHit) {
+//	const float scaled_t = (closestHit.t - 50.f) / 40.f;
+//	finalColor = { scaled_t, scaled_t, scaled_t };
+//}
+#pragma endregion
 
-			#pragma region Plane
-			//Ray viewRay{ {0,0,0}, rayDirectionNormalised };
-			//ColorRGB finalColor{};
-			//HitRecord closestHit{};
-			//Plane testPlane{ {0.f,-50.f,0.f}, {0.f,1.f,0.f}, 0 };
-			//GeometryUtils::HitTest_Plane(testPlane, viewRay, closestHit);
-			///*if (closestHit.didHit) {
-			//	finalColor = materials[closestHit.materialIndex]->Shade();
-			//}*/
-			//if (closestHit.didHit) {
-			//	const float scaled_t = (closestHit.t - 50.f) / 40.f;
-			//	finalColor = { scaled_t, scaled_t, scaled_t };
-			//}
-			#pragma endregion
+#pragma region Plane
+//Ray viewRay{ {0,0,0}, rayDirectionNormalised };
+//ColorRGB finalColor{};
+//HitRecord closestHit{};
+//Plane testPlane{ {0.f,-50.f,0.f}, {0.f,1.f,0.f}, 0 };
+//GeometryUtils::HitTest_Plane(testPlane, viewRay, closestHit);
+///*if (closestHit.didHit) {
+//	finalColor = materials[closestHit.materialIndex]->Shade();
+//}*/
+//if (closestHit.didHit) {
+//	const float scaled_t = (closestHit.t - 50.f) / 40.f;
+//	finalColor = { scaled_t, scaled_t, scaled_t };
+//}
+#pragma endregion
+#pragma endregion
 
-			#pragma region lab weeks
-			//W1
-			//Ray viewRay{ camera.origin, rayDirectionNormalised };
-			//W2
+#pragma region lab weeks
+		//W1
+		//Ray viewRay{ camera.origin, rayDirectionNormalised };
+		//W2
 			Ray viewRay{ camera.origin, transformedCamera };
 			ColorRGB finalColor{};
 			HitRecord closestHit{};
+			float incidentRadiance{ 0 };
 			pScene->GetClosestHit(viewRay, closestHit);
+
 			if (closestHit.didHit) {
-				finalColor = materials[closestHit.materialIndex]->Shade();
+				for (size_t i = 0; i < lightsSize; i++)
+				{
+					float LCL{ Vector3::Dot(closestHit.normal, LightUtils::GetDirectionToLight(lights[i], closestHit.origin).Normalized()) };
+					if (LCL < 0) {
+						continue;
+					}
+
+					Vector3 direction{ LightUtils::GetDirectionToLight(lights[i],closestHit.origin) };
+					Ray lightRay{ closestHit.origin + (closestHit.normal * offset), direction.Normalized(), offset, direction.Magnitude() };
+
+					ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
+					ColorRGB BRDFrgb{ materials[closestHit.materialIndex]->Shade(closestHit, lightRay.direction, camera.forward) };
+					switch (m_CurrentLightingMode)
+					{
+						case LightingMode::BRDF: {
+							finalColor += BRDFrgb;
+							break;
+						}
+						case LightingMode::Radiance: {
+							finalColor += eRGB;
+							break;
+						}
+						case LightingMode::ObservedArea: {
+							finalColor += eRGB * LCL;
+							break;
+						}
+						case LightingMode::Combined: {
+							finalColor += eRGB * BRDFrgb * LCL;
+							break;
+						}
+						default: {
+							finalColor += eRGB * BRDFrgb * LCL;
+							break;
+						}
+					}
+
+					//shadow
+					if (m_ShadowsEnabled) 
+						if (pScene->DoesHit(lightRay))
+						{
+							finalColor *= 0.5f;
+						}
+					}
+				
 			}
 			else {
 				finalColor = colors::Black;
 			}
-			#pragma endregion
+#pragma endregion
 
 			//Update Color in Buffer
 			finalColor.MaxToOne();
-
-			for (auto &light : lights)
-			{
-				Ray lightRay{ closestHit.origin + (closestHit.normal*0.0001f),
-					LightUtils::GetDirectionToLight(light,closestHit.origin).Normalized(),
-					0.0001f,
-					LightUtils::GetDirectionToLight(light,closestHit.origin).Magnitude() 
-				};
-
-				if (pScene->DoesHit(lightRay))
-				{
-					finalColor *= 0.5f;
-				}
-			}
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
 				static_cast<uint8_t>(finalColor.r * 255),
@@ -148,4 +184,10 @@ void Renderer::Render(Scene* pScene) const
 bool Renderer::SaveBufferToImage() const
 {
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
+}
+
+void Renderer::CycleLightingMode() {
+	m_CurrentLightingMode == LightingMode::Combined ?
+		m_CurrentLightingMode = LightingMode(0) :
+		m_CurrentLightingMode = LightingMode(static_cast<int>(m_CurrentLightingMode) + 1);
 }

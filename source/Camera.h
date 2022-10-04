@@ -31,6 +31,7 @@ namespace dae
 		float totalPitch{0.f};
 		float totalYaw{0.f};
 		const float rotationSpeed{ 0.03f };
+		const float movementSpeed{ 1.f };
 
 		Matrix cameraToWorld{};
 
@@ -55,27 +56,16 @@ namespace dae
 
 			//Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
-
+			origin.z += pKeyboardState[SDL_SCANCODE_W] * deltaTime * movementSpeed;
+			origin.x -= pKeyboardState[SDL_SCANCODE_A] * deltaTime * movementSpeed;
+			origin.z -= pKeyboardState[SDL_SCANCODE_S] * deltaTime * movementSpeed;
+			origin.x += pKeyboardState[SDL_SCANCODE_D] * deltaTime * movementSpeed;
+			fovAngle -= pKeyboardState[SDL_SCANCODE_UP] * deltaTime * movementSpeed;
+			fovAngle += pKeyboardState[SDL_SCANCODE_DOWN] * deltaTime * movementSpeed;
 
 			//Mouse Input
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
-			
-
-			if (pKeyboardState[SDL_SCANCODE_W]) {
-				origin.z += (1*deltaTime);
-			}
-			if(pKeyboardState[SDL_SCANCODE_S]) {
-				origin.z -= (1*deltaTime);
-			}
-
-			if(pKeyboardState[SDL_SCANCODE_A]) {
-				origin.x -= (1*deltaTime);
-			}
-			if(pKeyboardState[SDL_SCANCODE_D]) {
-				origin.x += (1*deltaTime);
-			}
-			
 			if (SDL_BUTTON(mouseState) == 1) {
 				totalPitch -= mouseX * deltaTime * rotationSpeed;
 				totalYaw -= mouseY * deltaTime * rotationSpeed;

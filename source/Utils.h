@@ -8,18 +8,51 @@ namespace dae
 {
 	namespace GeometryUtils
 	{
-
 #pragma region Sphere HitTest
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
+			//is faster
+			#pragma region Geometric way
+			Vector3 TC{ sphere.origin - ray.origin };
+			float dp{ Vector3::Dot(TC, ray.direction) };
+			float tcl{ TC.SqrMagnitude() };
+			float odSquare{ tcl - Square(dp) };
+
+			float radiusSquared{ Square(sphere.radius) };
+			if (odSquare > radiusSquared) {
+				return false;
+			}
+			float tca{ sqrtf(radiusSquared - odSquare) };
+
+			float t{ dp - tca };
+			if (t > ray.min && t < ray.max) {
+				if (ignoreHitRecord) return true;
+				Vector3 I{ ray.origin + t * ray.direction };
+				hitRecord.didHit = true;
+				hitRecord.materialIndex = sphere.materialIndex;
+				hitRecord.t = t;
+				hitRecord.origin = I;
+				hitRecord.normal = (I - sphere.origin).Normalized();
+				return true;
+
+			}
+			return false;
+			#pragma endregion
+
+			//is slower
+			#pragma region Analytic way
+			/*Vector3 raySphereOrigin{ ray.origin - sphere.origin };
+
 			float A{ Vector3::Dot(ray.direction, ray.direction) };
-			float B{ Vector3::Dot((2 * ray.direction), (ray.origin - sphere.origin)) };
-			float C{ Vector3::Dot((ray.origin - sphere.origin), (ray.origin - sphere.origin)) - powf(sphere.radius,2) };
+			float B{ Vector3::Dot((2 * ray.direction), (raySphereOrigin)) };
+			float C{ Vector3::Dot((raySphereOrigin), (raySphereOrigin)) - powf(sphere.radius,2) };
 
 			float discriminant{ powf(B,2) - 4 * A * C };
-			float tMax{ (-B + sqrtf(discriminant))/2*A };
-			float tMin{ (-B - sqrtf(discriminant))/2*A };
+			float discriminantsqrt{ sqrtfc(discriminant) };
+
+			float tMax{ (-B + discriminantsqrt) / 2 * A };
+			float tMin{ (-B - discriminantsqrt)/2*A };
 
 			if (discriminant > 0) {
 				if(tMin > ray.min && tMin < ray.max) {
@@ -39,7 +72,8 @@ namespace dae
 
 				}
 			}
-			return false;
+			return false;*/
+			#pragma endregion
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
@@ -117,9 +151,7 @@ namespace dae
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
 		{
-			//todo W3
-			assert(false && "No Implemented Yet!");
-			return {};
+			return light.color * light.intensity/powf((light.origin - target).Magnitude(), 2);
 		}
 	}
 
