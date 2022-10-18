@@ -105,23 +105,25 @@ namespace dae
 
 		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
 		{
+			float a{ Square(m_Roughness) };
+			if (m_Roughness <= 0.f) return ColorRGB{1,0,0};
 			//Determine F0 value (0.04, 0.04, 0.04) or Albedo based on Metalness
-			ColorRGB f0 = (m_Metalness == 0) ? ColorRGB(0.04, 0.04, 0.04) : m_Albedo;
+			ColorRGB f0 = (m_Metalness <= 0) ? ColorRGB(0.04, 0.04, 0.04) : m_Albedo;
 			
 			//Calculate half vector between view direction and light direction
-			Vector3 halfVector{ (v + l) / (v + l).Magnitude() };
+			Vector3 halfVector{ (v + -l).Normalized() };
 
 			//Calculate Fresnel(F)
 			ColorRGB F{ BRDF::FresnelFunction_Schlick(halfVector, v, f0) };
 			
 			//Calculate Normal Distribution(D)
-			float D{ BRDF::NormalDistribution_GGX(-hitRecord.normal, halfVector, Square(m_Roughness)) };
-			 
+			float D{ BRDF::NormalDistribution_GGX(-hitRecord.normal, halfVector, a) };
+
 			//Calculate Geometry(G)
-			float G{ BRDF::GeometryFunction_Smith(-hitRecord.normal, v, l, Square(m_Roughness)) };
+			float G{ BRDF::GeometryFunction_Smith(-hitRecord.normal, v, -l, a) };
 
 			//Calculate specular = > Cook - Torrance (DFG) / 4(dot(v, n)dot(l, n))
-			ColorRGB specular{ ColorRGB(D * F * G) / (4.f * Vector3::Dot(v, -hitRecord.normal) * Vector3::Dot(l, -hitRecord.normal)) };
+			ColorRGB specular{ ColorRGB(D * F * G) / (4.f * Vector3::Dot(v, hitRecord.normal) * Vector3::Dot(-l, hitRecord.normal)) };
 
 			//Determine kd -> 1 - Fresnel, cancel out if it’s a metal(kd = 0)
 			ColorRGB kd{};

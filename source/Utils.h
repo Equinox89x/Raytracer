@@ -152,7 +152,7 @@ namespace dae
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
 		{
-			return light.color * light.intensity/Square((light.origin - target).Magnitude());
+			return light.color * light.intensity/(light.origin - target).SqrMagnitude();
 		}
 	}
 

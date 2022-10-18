@@ -252,8 +252,11 @@ namespace dae {
 		const unsigned char matLambert_Yellow = AddMaterial(new Material_Lambert(colors::Yellow, 1.f));
 		const auto matLambertPhong_Blue = AddMaterial(new Material_LambertPhong(colors::Blue, 1.f, 1.f, 60.f));
 
+		const auto matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .95f, .93f, .88f }, 0.f, .1f));
+
+
 		//spheres
-		AddSphere({ -.75f, 1.f, .0f }, 1.f, matLambert_Red);
+		AddSphere({ -.75f, 1.f, .0f }, 1.f, matCT_GraySmoothPlastic);
 		AddSphere({ .75f, 1.f, .0f }, 1.f, matLambertPhong_Blue);
 
 		//plane

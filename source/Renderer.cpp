@@ -109,20 +109,22 @@ void Renderer::Render(Scene* pScene) const
 		//W2
 			Ray viewRay{ camera.origin, transformedCamera };
 			ColorRGB finalColor{};
-
 			HitRecord closestHit{};
+
 			pScene->GetClosestHit(viewRay, closestHit);
+			auto material{ materials[closestHit.materialIndex] };
 
 			if (closestHit.didHit) {
 				for (size_t i = 0; i < lightsSize; i++)
 				{
 					Vector3 direction{ LightUtils::GetDirectionToLight(lights[i],closestHit.origin) };
-					float LCL{ Vector3::Dot(closestHit.normal, direction.Normalized()) };
+					Vector3 nornalisedDirection{ direction.Normalized() };
+					float LCL{ Vector3::Dot(closestHit.normal, nornalisedDirection) };
 					if (LCL < 0) {
 						continue;
 					}
 
-					Ray lightRay{ closestHit.origin + (closestHit.normal * offset), direction.Normalized(), offset, direction.Magnitude() };
+					Ray lightRay{ closestHit.origin + (closestHit.normal * offset), nornalisedDirection, offset, direction.Magnitude() };
 
 					//shadow
 					if (m_ShadowsEnabled) {
@@ -133,7 +135,7 @@ void Renderer::Render(Scene* pScene) const
 					}
 
 					ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
-					ColorRGB BRDFrgb{ materials[closestHit.materialIndex]->Shade(closestHit, -lightRay.direction, viewRay.direction) };
+					ColorRGB BRDFrgb{ material->Shade(closestHit, lightRay.direction, viewRay.direction) };
 					switch (m_CurrentLightingMode)
 					{
 						case LightingMode::BRDF: {
@@ -145,7 +147,7 @@ void Renderer::Render(Scene* pScene) const
 							break;
 						}
 						case LightingMode::ObservedArea: {
-							finalColor += eRGB * LCL;
+							finalColor += ColorRGB(LCL, LCL, LCL);
 							break;
 						}
 						case LightingMode::Combined: {
