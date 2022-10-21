@@ -123,24 +123,24 @@ namespace dae {
 	Matrix Matrix::CreateRotationY(float yaw)
 	{
 		Vector3 first{ 1,0,0 };
-		Vector3 second{ 0,cosf(yaw), -sinf(yaw) };
-		Vector3 third{ 0,sinf(yaw),cosf(yaw) };
+		Vector3 second{ 0, cosf(yaw), -sinf(yaw) };
+		Vector3 third { 0, sinf(yaw),  cosf(yaw) };
 		return { first, second, third, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotationZ(float roll)
 	{
-		Vector3 first{ cosf(roll), -sinf(roll), 0 };
-		Vector3 second{ sinf(roll), cosf(roll), 0 };
+		Vector3 first { cosf(roll), -sinf(roll), 0 };
+		Vector3 second{ sinf(roll),  cosf(roll), 0 };
 		Vector3 third{ 0, 0, 1 };
 		return { first, second, third, Vector3{0,0,0} };
 	}
 
 	Matrix Matrix::CreateRotation(const Vector3& r)
 	{		
-		Matrix first{ CreateRotationX(r.x) };
+		Matrix first { CreateRotationX(r.x) };
 		Matrix second{ CreateRotationY(r.y) };
-		Matrix third{ CreateRotationZ(r.z) };
+		Matrix third { CreateRotationZ(r.z) };
 		return third * second * first;
 	}
 

@@ -12,6 +12,7 @@ namespace dae {
 		m_SphereGeometries.reserve(32);
 		m_PlaneGeometries.reserve(32);
 		m_TriangleMeshGeometries.reserve(32);
+		m_TriangleGeometries.reserve(32);
 		m_Lights.reserve(32);
 	}
 
@@ -53,6 +54,28 @@ namespace dae {
 			}
 		}
 
+		size_t triangleSize{ m_TriangleGeometries.size() };
+		for (size_t i = 0; i < triangleSize; i++)
+		{
+			HitRecord temp{};
+			GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp, true);
+
+			if (temp.t < smallestRecord.t) {
+				smallestRecord = temp;
+			}
+		}
+
+		size_t triangleMeshSize{ m_TriangleMeshGeometries.size() };
+		for (size_t i = 0; i < triangleMeshSize; i++)
+		{
+			HitRecord temp{};
+			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp, true);
+
+			if (temp.t < smallestRecord.t) {
+				smallestRecord = temp;
+			}
+		}
+
 		closestHit = smallestRecord;
 	}
 
@@ -72,6 +95,24 @@ namespace dae {
 		{
 			HitRecord temp{};
 			if(GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp, true)) {
+				return true;
+			}
+		}
+
+		size_t triangleSize{ m_TriangleGeometries.size() };
+		for (size_t i = 0; i < triangleSize; i++)
+		{
+			HitRecord temp{};
+			if(GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp, true)) {
+				return true;
+			}
+		}
+
+		size_t triangleMeshSize{ m_TriangleMeshGeometries.size() };
+		for (size_t i = 0; i < triangleMeshSize; i++)
+		{
+			HitRecord temp{};
+			if(GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp, true)) {
 				return true;
 			}
 		}
@@ -244,6 +285,7 @@ namespace dae {
 	}
 #pragma endregion
 
+#pragma region SCENE W3 TEST
 	void Scene_W3_Test::Initialize() {
 		m_Camera.origin = { 0.f,1.f,-5.f };
 		m_Camera.fovAngle = 45.f;
@@ -266,4 +308,53 @@ namespace dae {
 		AddPointLight({ 0.f,5.f,5.f }, 25.f, colors::White);
 		AddPointLight({ 0.f,2.5f,-5.f }, 25.f, colors::White);
 	}
+#pragma endregion
+	
+#pragma region SCENE W4 TEST
+	void Scene_W4_Test::Initialize() {
+		m_Camera.origin = { 0.f,1.f,-5.f };
+		m_Camera.totalYaw = { 0 };
+
+		//m_Camera.origin = { .0f, 1.f, 4.f };
+		//m_Camera.totalYaw = { PI };
+
+		m_Camera.fovAngle = 45.f;
+
+		const unsigned char matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, .57f, .57f }, 1.f));
+		const unsigned char matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
+
+		//plane
+		AddPlane({ 0.f,0.f,10.f }, { 0.f,0.f,-1.f }, matLambert_GrayBlue);
+		AddPlane({ 0.f,0.f,0.f }, { 0.f,1.f,0.f }, matLambert_GrayBlue);
+		AddPlane({ 0.f,10.f,0.f }, { 0.f,-1.f,0.f }, matLambert_GrayBlue);
+		AddPlane({ 5.f,0.f,0.f }, { -1.f,0.f,0.f }, matLambert_GrayBlue);
+		AddPlane({ -5.f,0.f,0.f }, { 1.f,0.f,0.f }, matLambert_GrayBlue);
+
+		//triangle
+		/*auto triangle{ Triangle{{-.75f,.5f,.0f},{-.75f,2.f,.0f}, {.75f, .5f, 0.f}} };
+		triangle.cullMode = TriangleCullMode::BackFaceCulling;
+		triangle.materialIndex = matLambert_White;
+
+		m_TriangleGeometries.emplace_back(triangle);*/
+
+		const auto triangleMesh{ AddTriangleMesh(TriangleCullMode::NoCulling,matLambert_White) };
+		triangleMesh->positions = { {-.75f,-1.f,.0f},{-.75f,1.f,.0f},{.75f,1.f,1.f},{.75f, -1.f, 0.f} };
+		triangleMesh->indices = {
+			0,1,2,
+			0,2,3
+		};
+
+		triangleMesh->CalculateNormals();
+
+		triangleMesh->Translate({ 0.f, 1.5f, 0.f });
+		triangleMesh->RotateY(45);
+
+		triangleMesh->UpdateTransforms();
+
+		//light
+		AddPointLight({ 0.f,5.f,5.f }, 50.f, ColorRGB(1.f, .61f, .45f));
+		AddPointLight({ -2.5f,5.f,-5.f }, 70.f, ColorRGB(1.f, .8f, .45f));
+		AddPointLight({ 2.5f,2.5f,-5.f }, 50.f, ColorRGB(.34f, .47f, .68f));
+	}
+#pragma endregion
 }

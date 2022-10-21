@@ -5,6 +5,7 @@
 
 namespace dae
 {
+
 #pragma region Material BASE
 	class Material
 	{
@@ -100,8 +101,7 @@ namespace dae
 	public:
 		Material_CookTorrence(const ColorRGB& albedo, float metalness, float roughness) :
 			m_Albedo(albedo), m_Metalness(metalness), m_Roughness(roughness)
-		{
-		}
+		{}
 
 		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
 		{
@@ -142,4 +142,5 @@ namespace dae
 		float m_Roughness{ 0.1f }; // [1.0 > 0.0] >> [ROUGH > SMOOTH]
 	};
 #pragma endregion
+
 }

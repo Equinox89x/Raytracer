@@ -8,7 +8,8 @@ namespace dae
 {
 	namespace GeometryUtils
 	{
-#pragma region Sphere HitTest
+
+		#pragma region Sphere HitTest
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
@@ -81,9 +82,10 @@ namespace dae
 			HitRecord temp{};
 			return HitTest_Sphere(sphere, ray, temp, true);
 		}
-#pragma endregion
-#pragma region Plane HitTest
-//		//PLANE HIT-TESTS
+		#pragma endregion
+
+		#pragma region Plane HitTest
+		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal)/ Vector3::Dot(ray.direction, plane.normal) };
@@ -106,15 +108,76 @@ namespace dae
 			HitRecord temp{};
 			return HitTest_Plane(plane, ray, temp, true);
 		}
-#pragma endregion
+		#pragma endregion
 		
-#pragma region Triangle HitTest
+		#pragma region Triangle HitTest
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
-			return false;
+			Vector3 a = triangle.v1 - triangle.v0;
+			Vector3 b = triangle.v2 - triangle.v0;
+			Vector3 edgeA = triangle.v1 - triangle.v0;
+			Vector3 edgeB = triangle.v2 - triangle.v1;
+			Vector3 edgeC = triangle.v0 - triangle.v2;
+			Vector3 normal = Vector3::Cross(a, b);
+			if (Vector3::Dot(ray.direction, normal) == 0)
+			{
+				return false;
+			}
+
+			Vector3 center{ (triangle.v0 + triangle.v1 + triangle.v2) / 3 };
+			Vector3 L = center - ray.origin;
+			float t = Vector3::Dot(L, normal) / Vector3::Dot(ray.direction, normal);
+			if (t < ray.min || t > ray.max)
+			{
+				return false;
+			}
+
+			Vector3 p = ray.origin + (t * ray.direction);
+			Vector3 pointToSide = p - triangle.v0;
+			if (Vector3::Dot(normal, Vector3::Cross(edgeA, pointToSide)) < 0)
+			{
+				return false;
+			}
+
+			pointToSide = p - triangle.v1;
+			if (Vector3::Dot(normal, Vector3::Cross(edgeB, pointToSide)) < 0)
+			{
+				return false;
+			}
+
+			pointToSide = p - triangle.v2;
+			if (Vector3::Dot(normal, Vector3::Cross(edgeC, pointToSide)) < 0)
+			{
+				return false;
+			}
+
+			float result{ Vector3::Dot(normal, ray.direction) };
+			switch (triangle.cullMode)
+			{
+			case TriangleCullMode::BackFaceCulling:
+				if (Vector3::Dot(normal, ray.direction) > 0)
+				{
+					//OR TRUE?
+					return false;
+				}
+				break;
+			case TriangleCullMode::FrontFaceCulling:
+				if (Vector3::Dot(normal, ray.direction) < 0)
+				{
+					//OR TRUE?
+					return false;
+				}
+				break;
+
+			}
+
+			hitRecord.normal = normal;
+			hitRecord.origin = p;
+			hitRecord.didHit = true;
+			hitRecord.t = t;
+			hitRecord.materialIndex = triangle.materialIndex;
+			return true;
 		}
 
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)
@@ -122,12 +185,29 @@ namespace dae
 			HitRecord temp{};
 			return HitTest_Triangle(triangle, ray, temp, true);
 		}
-#pragma endregion
-#pragma region TriangeMesh HitTest
+		#pragma endregion
+
+		#pragma region TriangeMesh HitTest
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
+			int i2{ 0 };
+			for (size_t i = 0; i < mesh.indices.size(); i++)
+			{
+				if (i % 3 == 0) {
+					Triangle t;
+					t.v0 = mesh.positions[mesh.indices[i]];
+					t.v1 = mesh.positions[mesh.indices[i+1]];
+					t.v2 = mesh.positions[mesh.indices[i+2]];
+
+					t.normal = mesh.normals[i2];
+					t.cullMode = mesh.cullMode;
+					t.materialIndex = mesh.materialIndex;
+					i2++;
+					if (HitTest_Triangle(t, ray, hitRecord)) {
+						return true;
+					}
+				}
+			}
 			return false;
 		}
 
@@ -136,7 +216,8 @@ namespace dae
 			HitRecord temp{};
 			return HitTest_TriangleMesh(mesh, ray, temp, true);
 		}
-#pragma endregion
+		#pragma endregion
+	
 	}
 
 	namespace LightUtils
