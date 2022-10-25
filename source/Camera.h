@@ -36,7 +36,7 @@ namespace dae
 		Matrix cameraToWorld{};
 
 
-		Matrix CalculateCameraToWorld()
+		Matrix CalculateCameraToWorld() const
 		{
 			Vector3 right{ Vector3::Cross(Vector3::UnitY, forward).Normalized() };
 			Vector3 upVector{ Vector3::Cross(forward, right).Normalized() };
@@ -69,7 +69,7 @@ namespace dae
 			if (SDL_BUTTON(mouseState) == 1) {
 				totalPitch -= mouseX * deltaTime * rotationSpeed;
 				totalYaw -= mouseY * deltaTime * rotationSpeed;
-				Matrix finalRot{ Matrix::CreateRotation(totalPitch, totalYaw, 1) };
+				Matrix finalRot{ Matrix::CreateRotation(totalYaw, totalPitch, 1) };
 				forward = finalRot.TransformVector(Vector3::UnitZ);
 				forward.Normalize();
 			}

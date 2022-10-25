@@ -114,7 +114,7 @@ namespace dae {
 
 	Matrix Matrix::CreateRotationY(float yaw)
 	{
-		Vector3 first{ cosf(yaw),0,sinf(yaw) };
+		Vector3 first{ cosf(yaw),0, sinf(yaw) };
 		Vector3 second{ 0, 1, 0 };
 		Vector3 third{ -sinf(yaw), 0, cosf(yaw) };
 		return { first, second, third, Vector3{0,0,0} };

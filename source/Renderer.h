@@ -26,7 +26,7 @@ namespace dae
 		Renderer& operator=(Renderer&&) noexcept = delete;
 
 		void Render(Scene* pScene) const;
-		void RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float aspectRation, const Camera& camera, const std::vector<Light>& lights, const std::vector<Material*>& materials, Matrix camToWorld, size_t lightsSize) const;
+		void RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float aspectRation, const Camera& camera, const std::vector<Light>& lights, const std::vector<Material*>& materials) const;
 		bool SaveBufferToImage() const;
 		void CycleLightingMode();
 		void ToggleShadows() { m_ShadowsEnabled = !m_ShadowsEnabled; }

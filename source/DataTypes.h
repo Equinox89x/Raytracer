@@ -129,7 +129,7 @@ namespace dae
 
 		void CalculateNormals()
 		{
-			for (int i{}; i < indices.size(); i++)
+			for (int i{0}; i < indices.size(); i++)
 			{
 				if (i % 3 == 0) {
 					Vector3 a = positions[indices[i + 1]] - positions[indices[i]];
@@ -143,31 +143,36 @@ namespace dae
 		void UpdateTransforms()
 		{
 			//Calculate Final Transform
-			const Matrix finalTransform{ rotationTransform * scaleTransform * translationTransform};
+			const Matrix finalTransform{ scaleTransform * rotationTransform.Transpose() * translationTransform};
 			
-			for (int i{}; i < positions.size(); i++)
+			for (int i{0}; i < positions.size(); i++)
 			{
 				positions[i] = finalTransform.TransformPoint(positions[i]);
 			}
 
-			for (int i{}; i < normals.size(); i++)
+			for (int i{0}; i < normals.size(); i++)
 			{
 				normals[i] = finalTransform.TransformVector(normals[i]);
 			}
 
-			//UpdateTransformedAABB(finalTransform);
+			scaleTransform = Matrix{};
+			rotationTransform = Matrix{};
+			translationTransform = Matrix{};
+
+			UpdateTransformedAABB(finalTransform);
 		}
 
 		#pragma region AABB
 		void UpdateAABB() {
-			if (positions.size() > 0) {
+			size_t size{ positions.size() };
+			if (size > 0) {
 				minAABB = positions[0];
 				maxAABB = positions[0];
 
-				for (auto& p : positions)
-				{
-					minAABB = Vector3::Min(p, minAABB);
-					maxAABB = Vector3::Max(p, maxAABB);
+				for (size_t i = 0; i < size; i++)
+				{					
+					minAABB = Vector3::Min(positions[i], minAABB);
+					maxAABB = Vector3::Max(positions[i], maxAABB);
 				}
 			}
 		}

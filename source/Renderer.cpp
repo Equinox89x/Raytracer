@@ -27,22 +27,20 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	offset = 0.0001f;
 }
 
-void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float aspectRation, const Camera& camera, const std::vector<Light>& lights, const std::vector<Material*>& materials, Matrix camToWorld, size_t lightsSize) const {
+void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float aspectRation, const Camera& camera, const std::vector<Light>& lights, const std::vector<Material*>& materials) const {
 	const int px = pixelIndex % m_Width;
 	const int py = pixelIndex / m_Width;
 
 	float rx{ px + 0.5f };
 	float ry{ py + 0.5f };
 
-	const float screenWidth{ static_cast<float>(m_Width) };
-	const float screenHeight{ static_cast<float>(m_Height) };
-	float cx{ (2 * (rx / screenWidth) - 1) * aspectRation * fov };
-	float cy{ (1-(2 * (ry / screenHeight))) * fov };
+	float cx{ (2 * (rx / static_cast<float>(m_Width)) - 1) * aspectRation * fov };
+	float cy{ (1-(2 * (ry / static_cast<float>(m_Height)))) * fov };
 
 	Vector3 rayDirection{ cx, cy, 1 };
-	Vector3 rayDirectionNormalised{ rayDirection.Normalized() };
 
-	Vector3 transformedCamera{ camToWorld.TransformVector(rayDirectionNormalised) };
+	Matrix camToWorld{ camera.CalculateCameraToWorld() };
+	Vector3 transformedCamera{ camToWorld.TransformVector(rayDirection.Normalized()) };
 
 	Ray viewRay{ camera.origin, transformedCamera };
 	ColorRGB finalColor{};
@@ -52,6 +50,8 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 	auto material{ materials[closestHit.materialIndex] };
 
 	if (closestHit.didHit) {
+
+		const size_t lightsSize{ lights.size() };
 		for (size_t i = 0; i < lightsSize; i++)
 		{
 			Vector3 direction{ LightUtils::GetDirectionToLight(lights[i],closestHit.origin) };
@@ -71,15 +71,15 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 				}
 			}
 
-			ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
-			ColorRGB BRDFrgb{ material->Shade(closestHit, lightRay.direction, viewRay.direction) };
 			switch (m_CurrentLightingMode)
 			{
 			case LightingMode::BRDF: {
+				ColorRGB BRDFrgb{ material->Shade(closestHit, lightRay.direction, viewRay.direction) };
 				finalColor += BRDFrgb;
 				break;
 			}
 			case LightingMode::Radiance: {
+				ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
 				finalColor += eRGB;
 				break;
 			}
@@ -88,10 +88,14 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 				break;
 			}
 			case LightingMode::Combined: {
+				ColorRGB BRDFrgb{ material->Shade(closestHit, lightRay.direction, viewRay.direction) };
+				ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
 				finalColor += eRGB * BRDFrgb * LCL;
 				break;
 			}
 			default: {
+				ColorRGB BRDFrgb{ material->Shade(closestHit, lightRay.direction, viewRay.direction) };
+				ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
 				finalColor += eRGB * BRDFrgb * LCL;
 				break;
 			}
@@ -116,17 +120,14 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 void Renderer::Render(Scene* pScene) const
 {
 	Camera& camera = pScene->GetCamera();
-	auto& materials = pScene->GetMaterials();
-	auto& lights = pScene->GetLights();
+	const std::vector<Material*>& materials = pScene->GetMaterials();
+	const std::vector<Light>& lights = pScene->GetLights();
 
-	const float screenWidth{ static_cast<float>(m_Width) };
-	const float screenHeight{ static_cast<float>(m_Height) };
-	const float aspectRatio{ screenWidth / screenHeight };
+	//const float screenWidth{ static_cast<float>(m_Width) };
+	//const float screenHeight{ static_cast<float>(m_Height) };
+	const float aspectRatio{ static_cast<float>(m_Width) / static_cast<float>(m_Height) };
 
-	float fov{ tan(camera.fovAngle / 2) };
-	Matrix camToWorld{ camera.CalculateCameraToWorld() };
-
-	const size_t lightsSize{ lights.size() };
+	const float fov{ tan(camera.fovAngle / 2) };
 
 	const uint32_t numPixels = m_Width * m_Height ;
 
@@ -148,7 +149,7 @@ void Renderer::Render(Scene* pScene) const
 				const uint32_t pixelIndexEnd{ currPixelIndex + taskSize };
 				for (uint32_t pixelIndex{ currPixelIndex }; pixelIndex < pixelIndexEnd; ++pixelIndex)
 				{
-					RenderPixel(pScene, pixelIndex, fov, aspectRatio, pScene->GetCamera(), lights, materials, camToWorld, lightsSize);
+					RenderPixel(pScene, pixelIndex, fov, aspectRatio, pScene->GetCamera(), lights, materials);
 				}
 			}
 		));
@@ -162,12 +163,12 @@ void Renderer::Render(Scene* pScene) const
 
 	#elif defined(PARALLEL_FOR)
 	concurrency::parallel_for(0u, numPixels, [=, this](int i) {
-		RenderPixel(pScene, i, fov, aspectRatio, pScene->GetCamera(), lights, materials, camToWorld, lightsSize);
+		RenderPixel(pScene, i, fov, aspectRatio, pScene->GetCamera(), lights, materials);
 	});
 	#else
 	for (uint32_t i{ 0 }; i < numPixels; i++)
 	{
-		RenderPixel(pScene, i, fov, aspectRatio, pScene->GetCamera(), lights, materials, camToWorld, lightsSize);
+		RenderPixel(pScene, i, fov, aspectRatio, pScene->GetCamera(), lights, materials);
 	}
 	#endif
 
