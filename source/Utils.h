@@ -120,6 +120,23 @@ namespace dae
 			Vector3 edgeB = triangle.v2 - triangle.v1;
 			Vector3 edgeC = triangle.v0 - triangle.v2;
 			Vector3 normal = Vector3::Cross(a, b);
+			switch (triangle.cullMode)
+			{
+				case TriangleCullMode::BackFaceCulling:
+					if (Vector3::Dot(normal, ray.direction) > 0)
+					{
+						return false;
+					}
+					break;
+				case TriangleCullMode::FrontFaceCulling:
+					if (Vector3::Dot(normal, ray.direction) < 0)
+					{
+						return false;
+					}
+					break;
+			}
+
+			float result{ Vector3::Dot(normal, ray.direction) };
 			if (Vector3::Dot(ray.direction, normal) == 0)
 			{
 				return false;
@@ -152,25 +169,6 @@ namespace dae
 				return false;
 			}
 
-			float result{ Vector3::Dot(normal, ray.direction) };
-			switch (triangle.cullMode)
-			{
-			case TriangleCullMode::BackFaceCulling:
-				if (Vector3::Dot(normal, ray.direction) > 0)
-				{
-					//OR TRUE?
-					return false;
-				}
-				break;
-			case TriangleCullMode::FrontFaceCulling:
-				if (Vector3::Dot(normal, ray.direction) < 0)
-				{
-					//OR TRUE?
-					return false;
-				}
-				break;
-
-			}
 
 			hitRecord.normal = normal;
 			hitRecord.origin = p;
@@ -190,6 +188,10 @@ namespace dae
 		#pragma region TriangeMesh HitTest
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
+			//if (!SlabTest_TriangleMesh(mesh, ray)) {
+			//	return false;
+			//}
+
 			int i2{ 0 };
 			for (size_t i = 0; i < mesh.indices.size(); i++)
 			{
@@ -199,9 +201,9 @@ namespace dae
 					t.v1 = mesh.positions[mesh.indices[i+1]];
 					t.v2 = mesh.positions[mesh.indices[i+2]];
 
-					t.normal = mesh.normals[i2];
-					t.cullMode = mesh.cullMode;
 					t.materialIndex = mesh.materialIndex;
+					t.normal = mesh.normals[mesh.indices[i]];
+					t.cullMode = mesh.cullMode;
 					i2++;
 					if (HitTest_Triangle(t, ray, hitRecord)) {
 						return true;
@@ -215,6 +217,28 @@ namespace dae
 		{
 			HitRecord temp{};
 			return HitTest_TriangleMesh(mesh, ray, temp, true);
+		}
+
+		inline bool SlabTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray) {
+			float tx1{ (mesh.transformedMinAABB.x - ray.origin.x) / ray.direction.x };
+			float tx2{ (mesh.transformedMaxAABB.x - ray.origin.x) / ray.direction.x };
+
+			float tMin{ std::min(tx1,tx2) };
+			float tMax{ std::max(tx1,tx2) };
+
+			float ty1{ (mesh.transformedMinAABB.y - ray.origin.y) / ray.direction.y };
+			float ty2{ (mesh.transformedMaxAABB.y - ray.origin.y) / ray.direction.y };
+
+			tMin = std::max(tMin, std::min(ty1, ty2));
+			tMax = std::min(tMax, std::max(ty1, ty2));
+
+			float tz1{ (mesh.transformedMinAABB.z - ray.origin.z) / ray.direction.z };
+			float tz2{ (mesh.transformedMaxAABB.z - ray.origin.z) / ray.direction.z };
+
+			tMin = std::max(tMin, std::min(tz1, tz2));
+			tMax = std::min(tMax, std::max(tz1, tz2));
+
+			return tMax > 0 && tMax >= tMin;
 		}
 		#pragma endregion
 	

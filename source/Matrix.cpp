@@ -112,19 +112,19 @@ namespace dae {
 		return { Vector3::UnitX, Vector3::UnitY, Vector3::UnitZ, t };
 	}
 
-	Matrix Matrix::CreateRotationX(float pitch)
+	Matrix Matrix::CreateRotationY(float yaw)
 	{
-		Vector3 first{ cosf(pitch),0,sinf(pitch) };
+		Vector3 first{ cosf(yaw),0,sinf(yaw) };
 		Vector3 second{ 0, 1, 0 };
-		Vector3 third{ -sinf(pitch), 0, cosf(pitch) };
+		Vector3 third{ -sinf(yaw), 0, cosf(yaw) };
 		return { first, second, third, Vector3{0,0,0} };
 	}
 
-	Matrix Matrix::CreateRotationY(float yaw)
+	Matrix Matrix::CreateRotationX(float pitch)
 	{
 		Vector3 first{ 1,0,0 };
-		Vector3 second{ 0, cosf(yaw), -sinf(yaw) };
-		Vector3 third { 0, sinf(yaw),  cosf(yaw) };
+		Vector3 second{ 0, cosf(pitch), -sinf(pitch) };
+		Vector3 third { 0, sinf(pitch),  cosf(pitch) };
 		return { first, second, third, Vector3{0,0,0} };
 	}
 

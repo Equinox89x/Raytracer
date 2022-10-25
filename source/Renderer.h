@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 struct SDL_Window;
 struct SDL_Surface;
@@ -8,6 +9,10 @@ struct SDL_Surface;
 namespace dae
 {
 	class Scene;
+	class Matrix;
+	class Camera;
+	class Material;
+	struct Light;
 
 	class Renderer final
 	{
@@ -21,6 +26,7 @@ namespace dae
 		Renderer& operator=(Renderer&&) noexcept = delete;
 
 		void Render(Scene* pScene) const;
+		void RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float aspectRation, const Camera& camera, const std::vector<Light>& lights, const std::vector<Material*>& materials, Matrix camToWorld, size_t lightsSize) const;
 		bool SaveBufferToImage() const;
 		void CycleLightingMode();
 		void ToggleShadows() { m_ShadowsEnabled = !m_ShadowsEnabled; }

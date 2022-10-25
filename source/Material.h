@@ -108,7 +108,7 @@ namespace dae
 			float a{ Square(m_Roughness) };
 			if (m_Roughness <= 0.f) return ColorRGB{1,0,0};
 			//Determine F0 value (0.04, 0.04, 0.04) or Albedo based on Metalness
-			ColorRGB f0 = (m_Metalness <= 0) ? ColorRGB(0.04, 0.04, 0.04) : m_Albedo;
+			ColorRGB f0 = (m_Metalness <= 0.f) ? ColorRGB(0.04f, 0.04f, 0.04f) : m_Albedo;
 			
 			//Calculate half vector between view direction and light direction
 			Vector3 halfVector{ (v + -l).Normalized() };
