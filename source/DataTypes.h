@@ -80,6 +80,7 @@ namespace dae
 
 		TriangleCullMode cullMode{TriangleCullMode::BackFaceCulling};
 
+		Vector3 totalTranslation{};
 		Matrix rotationTransform{};
 		Matrix translationTransform{};
 		Matrix scaleTransform{};
@@ -135,7 +136,7 @@ namespace dae
 					Vector3 a = positions[indices[i + 1]] - positions[indices[i]];
 					Vector3 b = positions[indices[i + 2]] - positions[indices[i]];
 					Vector3 normal = Vector3::Cross(a, b);
-					normals.push_back(normal);
+					normals[i] = normal;
 				}
 			}
 		}
@@ -143,7 +144,13 @@ namespace dae
 		void UpdateTransforms()
 		{
 			//Calculate Final Transform
-			const Matrix finalTransform{ scaleTransform * rotationTransform.Transpose() * translationTransform};
+			totalTranslation += translationTransform.GetTranslation();
+			Matrix totalTrans = Matrix::CreateTranslation(totalTranslation);
+			Matrix totalTransNegative = Matrix::CreateTranslation(-totalTranslation);
+
+			//bring the object back to its original position, apply the transform, then bring it back to the new position
+			const Matrix finalTransform{ totalTransNegative * scaleTransform * rotationTransform * translationTransform * totalTrans };
+
 			
 			for (int i{0}; i < positions.size(); i++)
 			{

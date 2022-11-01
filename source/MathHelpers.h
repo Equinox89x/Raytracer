@@ -1,7 +1,6 @@
 #pragma once
 #include <cmath>
-#include <limits>   
-
+#include <limits>
 
 namespace dae
 {

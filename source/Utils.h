@@ -1,8 +1,12 @@
 #pragma once
 #include <cassert>
 #include <fstream>
+#include <iostream>
 #include "Math.h"
 #include "DataTypes.h"
+#include <string>  
+#include "Scene.h"
+
 
 namespace dae
 {
@@ -91,6 +95,7 @@ namespace dae
 			float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal)/ Vector3::Dot(ray.direction, plane.normal) };
 
 			if (t > ray.min && t < ray.max) {
+				if (ignoreHitRecord) return true;
 				Vector3 I{ ray.origin + t * ray.direction };
 				hitRecord.didHit = true;
 				hitRecord.materialIndex = plane.materialIndex;
@@ -118,7 +123,16 @@ namespace dae
 			Vector3 b = triangle.v2 - triangle.v0;
 			Vector3 normal = Vector3::Cross(a, b);
 			float result{ Vector3::Dot(normal, ray.direction) };
-			switch (triangle.cullMode)
+
+			TriangleCullMode currentCulling = triangle.cullMode;
+			if (ignoreHitRecord) {
+				//change cullmode if it's a shadow
+				currentCulling == TriangleCullMode::BackFaceCulling ? 
+					currentCulling = TriangleCullMode::FrontFaceCulling : 
+					currentCulling = TriangleCullMode::BackFaceCulling;
+			}
+			
+			switch (currentCulling)
 			{
 				case TriangleCullMode::BackFaceCulling:
 					if (result > 0)
@@ -169,7 +183,7 @@ namespace dae
 				return false;
 			}
 
-
+			if (ignoreHitRecord) return true;
 			hitRecord.normal = normal;
 			hitRecord.origin = p;
 			hitRecord.didHit = true;
@@ -214,7 +228,8 @@ namespace dae
 				return false;
 			}
 
-			for (size_t i = 0; i < mesh.indices.size(); i++)
+			int size = mesh.indices.size();
+			for (int i = 0; i < size; i++)
 			{
 				if (i % 3 == 0) {
 					Triangle t;
@@ -225,7 +240,7 @@ namespace dae
 					t.materialIndex = mesh.materialIndex;
 					t.normal = mesh.normals[mesh.indices[i]];
 					t.cullMode = mesh.cullMode;
-					if (HitTest_Triangle(t, ray, hitRecord)) {
+					if (HitTest_Triangle(t, ray, hitRecord, ignoreHitRecord)) {
 						return true;
 					}
 				}

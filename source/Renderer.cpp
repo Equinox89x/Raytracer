@@ -47,13 +47,17 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 	HitRecord closestHit{};
 
 	pScene->GetClosestHit(viewRay, closestHit);
-	auto material{ materials[closestHit.materialIndex] };
+	const auto material{ materials[closestHit.materialIndex] };
 
 	if (closestHit.didHit) {
 
-		const size_t lightsSize{ lights.size() };
-		for (size_t i = 0; i < lightsSize; i++)
+		const int lightsSize = lights.size();
+		for (int i = 0; i < lightsSize; i++)
 		{
+			//check if point we hit can see light
+			//if not, go to next lightand skip light calculation
+
+
 			Vector3 direction{ LightUtils::GetDirectionToLight(lights[i],closestHit.origin) };
 			Vector3 normalisedDirection{ direction.Normalized() };
 			float LCL{ Vector3::Dot(closestHit.normal, normalisedDirection) };
@@ -123,9 +127,9 @@ void Renderer::Render(Scene* pScene) const
 	const std::vector<Material*>& materials = pScene->GetMaterials();
 	const std::vector<Light>& lights = pScene->GetLights();
 
-	//const float screenWidth{ static_cast<float>(m_Width) };
-	//const float screenHeight{ static_cast<float>(m_Height) };
-	const float aspectRatio{ static_cast<float>(m_Width) / static_cast<float>(m_Height) };
+	const float screenWidth{ static_cast<float>(m_Width) };
+	const float screenHeight{ static_cast<float>(m_Height) };
+	const float aspectRatio{ screenWidth / screenHeight };
 
 	const float fov{ tan(camera.fovAngle / 2) };
 

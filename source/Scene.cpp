@@ -31,45 +31,44 @@ namespace dae {
 	{
 		HitRecord smallestRecord{ };
 		smallestRecord.t = FLT_MAX;
+		bool gothit{ false };
 
-		size_t sphereSize{ m_SphereGeometries.size() };
-		for (size_t i = 0; i < sphereSize; i++)
+		HitRecord temp{};
+		for (int i = 0; i < m_SphereGeometries.size(); i++)
 		{
-			HitRecord temp{};
-			GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, temp, false);
+			GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, temp);
 
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
+				gothit = true;
 			}
+		}
+		if (gothit) {
+			closestHit = smallestRecord;
+			return;
 		}
 		
-		size_t planeSize{ m_PlaneGeometries.size() };
-		for (size_t i = 0; i < planeSize; i++)
+		for (int i = 0; i < m_PlaneGeometries.size(); i++)
 		{
-			HitRecord temp{};
-			GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp, true);
+			GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp);
 
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
 		}
 
-		size_t triangleSize{ m_TriangleGeometries.size() };
-		for (size_t i = 0; i < triangleSize; i++)
+		for (int i = 0; i < m_TriangleMeshGeometries.size(); i++)
 		{
-			HitRecord temp{};
-			GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp, true);
+			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp);
 
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
 		}
 
-		size_t triangleMeshSize{ m_TriangleMeshGeometries.size() };
-		for (size_t i = 0; i < triangleMeshSize; i++)
+		for (int i = 0; i < m_TriangleGeometries.size(); i++)
 		{
-			HitRecord temp{};
-			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp, true);
+			GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp);
 
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
@@ -81,8 +80,7 @@ namespace dae {
 
 	bool Scene::DoesHit(const Ray& ray) const {
 
-		size_t sphereSize{ m_SphereGeometries.size() };
-		for (size_t i = 0; i < sphereSize; i++)
+		for (int i{ 0 }; i < m_SphereGeometries.size(); i++)
 		{
 			HitRecord temp{};
 			if (GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, temp, true)) {
@@ -90,8 +88,7 @@ namespace dae {
 			}
 		}
 
-		size_t planeSize{ m_PlaneGeometries.size() };
-		for (size_t i = 0; i < planeSize; i++)
+		for (int i{ 0 }; i < m_PlaneGeometries.size(); i++)
 		{
 			HitRecord temp{};
 			if(GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp, true)) {
@@ -99,8 +96,7 @@ namespace dae {
 			}
 		}
 
-		size_t triangleSize{ m_TriangleGeometries.size() };
-		for (size_t i = 0; i < triangleSize; i++)
+		for (int i{ 0 }; i < m_TriangleGeometries.size(); i++)
 		{
 			HitRecord temp{};
 			if(GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp, true)) {
@@ -108,8 +104,7 @@ namespace dae {
 			}
 		}
 
-		size_t triangleMeshSize{ m_TriangleMeshGeometries.size() };
-		for (size_t i = 0; i < triangleMeshSize; i++)
+		for (int i{ 0 }; i < m_TriangleMeshGeometries.size(); i++)
 		{
 			HitRecord temp{};
 			if(GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp, true)) {
@@ -338,7 +333,7 @@ namespace dae {
 		m_TriangleGeometries.emplace_back(triangle);*/
 
 		//2 triangles
-		/*pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
+		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
 		pMesh->positions = {
 			{ -.75f,  -1.f, .0f},
 			{ -.75f,  1.f,  .0f},
@@ -349,18 +344,21 @@ namespace dae {
 		pMesh->indices = {
 			0,1,2,
 			0,2,3
-		};*/
-		//pMesh->CalculateNormals();
-		//pMesh->Translate({ 0.f, 1.5f, 0.f });
-		//pMesh->RotateY(45);
+		};
+		pMesh->normals.reserve(pMesh->indices.size());
+		pMesh->CalculateNormals();
+		pMesh->Translate({ 0.f, 1.5f, 0.f });
+		pMesh->RotateY(45);
 
 		//box
-		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
-		Utils::ParseOBJ("Resources/simple_cube.obj", pMesh->positions, pMesh->normals, pMesh->indices);
+		//pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
+		//Utils::ParseOBJ("Resources/simple_cube.obj", pMesh->positions, pMesh->normals, pMesh->indices);
+		//pMesh->normals.reserve(pMesh->indices.size());
 
-		pMesh->Scale({ .7f, .7f, .7f });
-		pMesh->Translate({ .0f, 1.f, 0.f });
+		//pMesh->Scale({ .7f, .7f, .7f });
+		//pMesh->Translate({ .0f, 1.f, 0.f });
 
+		pMesh->UpdateAABB();
 		pMesh->UpdateTransforms();
 
 		//light
@@ -372,7 +370,8 @@ namespace dae {
 	void Scene_W4_Test::Update(Timer* pTimer) {
 		Scene::Update(pTimer);
 
-		pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
+		//pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
+		pMesh->UpdateAABB();
 		pMesh->UpdateTransforms();
 	}
 #pragma endregion
@@ -412,18 +411,21 @@ namespace dae {
 		const Triangle baseTriangle = { Vector3( -.75f, 1.5f, 0.f ), Vector3( .75f, 0.f, 0.f ), Vector3( -.75f, 0.f, 0.f ) };
 		m_Meshes[0] = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
 		m_Meshes[0]->AppendTriangle(baseTriangle, true);
+		m_Meshes[0]->normals.reserve(m_Meshes[0]->indices.size());
 		m_Meshes[0]->Translate({ -1.75f, 4.5f, 0.f });
 		m_Meshes[0]->UpdateAABB();
 		m_Meshes[0]->UpdateTransforms();
 
 		m_Meshes[1] = AddTriangleMesh(TriangleCullMode::FrontFaceCulling, matLambert_White);
 		m_Meshes[1]->AppendTriangle(baseTriangle, true);
+		m_Meshes[1]->normals.reserve(m_Meshes[0]->indices.size());
 		m_Meshes[1]->Translate({ 0.f, 4.5f, 0.f });
 		m_Meshes[1]->UpdateAABB();
 		m_Meshes[1]->UpdateTransforms();
 
 		m_Meshes[2] = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
 		m_Meshes[2]->AppendTriangle(baseTriangle, true);
+		m_Meshes[2]->normals.reserve(m_Meshes[0]->indices.size());
 		m_Meshes[2]->Translate({ 1.75f, 4.5f, 0.f });
 		m_Meshes[2]->UpdateAABB();
 		m_Meshes[2]->UpdateTransforms();
@@ -482,6 +484,15 @@ namespace dae {
 		AddPointLight({ 0.f,5.f,5.f }, 50.f, ColorRGB(1.f, .61f, .45f));
 		AddPointLight({ -2.5f,5.f,-5.f }, 70.f, ColorRGB(1.f, .8f, .45f));
 		AddPointLight({ 2.5f,2.5f,-5.f }, 50.f, ColorRGB(.34f, .47f, .68f));
+	}
+
+	void Scene_W4_Bunny::Update(Timer* pTimer) {
+		Scene::Update(pTimer);
+
+		const float yawAngle{ (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2 };
+		m_pMesh->RotateY(yawAngle);
+		m_pMesh->UpdateAABB();
+		m_pMesh->UpdateTransforms();
 	}
 #pragma endregion
 

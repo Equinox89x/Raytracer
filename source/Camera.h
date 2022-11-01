@@ -30,8 +30,8 @@ namespace dae
 
 		float totalPitch{0.f};
 		float totalYaw{0.f};
-		const float rotationSpeed{ 0.03f };
-		const float movementSpeed{ 1.f };
+		const float rotationSpeed{ 0.5f };
+		const float movementSpeed{ 5.f };
 
 		Matrix cameraToWorld{};
 
@@ -57,9 +57,13 @@ namespace dae
 			//Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
 			origin.z += pKeyboardState[SDL_SCANCODE_W] * deltaTime * movementSpeed;
+			origin.y -= pKeyboardState[SDL_SCANCODE_LCTRL] * deltaTime * movementSpeed;
 			origin.x -= pKeyboardState[SDL_SCANCODE_A] * deltaTime * movementSpeed;
+
 			origin.z -= pKeyboardState[SDL_SCANCODE_S] * deltaTime * movementSpeed;
+			origin.y += pKeyboardState[SDL_SCANCODE_SPACE] * deltaTime * movementSpeed;
 			origin.x += pKeyboardState[SDL_SCANCODE_D] * deltaTime * movementSpeed;
+
 			fovAngle -= pKeyboardState[SDL_SCANCODE_UP] * deltaTime * movementSpeed;
 			fovAngle += pKeyboardState[SDL_SCANCODE_DOWN] * deltaTime * movementSpeed;
 
