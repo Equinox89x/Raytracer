@@ -57,19 +57,18 @@ namespace dae {
 			}
 		}
 
-		for (int i = 0; i < m_TriangleMeshGeometries.size(); i++)
+		for (int i = 0; i < m_TriangleGeometries.size(); i++)
 		{
-			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp);
+			GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp);
 
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
 		}
 
-		for (int i = 0; i < m_TriangleGeometries.size(); i++)
+		for (int i = 0; i < m_TriangleMeshGeometries.size(); i++)
 		{
-			GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp);
-
+			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp);
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
@@ -439,7 +438,7 @@ namespace dae {
 	void Scene_W4_ReferenceScene::Update(Timer* pTimer) {
 		Scene::Update(pTimer);
 
-		const float yawAngle{ (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2 };
+		float yawAngle{ (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2 };
 		for (const auto& m: m_Meshes)
 		{
 			m->RotateY(yawAngle);
@@ -489,7 +488,7 @@ namespace dae {
 	void Scene_W4_Bunny::Update(Timer* pTimer) {
 		Scene::Update(pTimer);
 
-		const float yawAngle{ (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2 };
+		float yawAngle{ (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2 };
 		m_pMesh->RotateY(yawAngle);
 		m_pMesh->UpdateAABB();
 		m_pMesh->UpdateTransforms();

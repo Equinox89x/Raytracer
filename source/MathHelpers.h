@@ -34,7 +34,7 @@ namespace dae
 	{
 		return curr == prev
 			? curr
-			: sqrtNewtonRaphson(x, 0.5 * (curr + x / curr), curr);
+			: sqrtNewtonRaphson(x, 0.5f * (curr + x / curr), curr);
 	}
 
 	float constexpr sqrtfc(float x)

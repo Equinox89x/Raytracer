@@ -5,7 +5,6 @@
 #include "Math.h"
 #include "DataTypes.h"
 #include <string>  
-#include "Scene.h"
 
 
 namespace dae
@@ -184,11 +183,11 @@ namespace dae
 			}
 
 			if (ignoreHitRecord) return true;
+			hitRecord.materialIndex = triangle.materialIndex;
 			hitRecord.normal = normal;
 			hitRecord.origin = p;
 			hitRecord.didHit = true;
 			hitRecord.t = t;
-			hitRecord.materialIndex = triangle.materialIndex;
 			return true;
 		}
 
@@ -228,24 +227,32 @@ namespace dae
 				return false;
 			}
 
-			int size = mesh.indices.size();
+			float distance{ FLT_MAX };
+			Triangle t;
+			HitRecord temp;
+			int size{ static_cast<int>(mesh.normals.size()) };
 			for (int i = 0; i < size; i++)
 			{
-				if (i % 3 == 0) {
-					Triangle t;
-					t.v0 = mesh.positions[mesh.indices[i]];
-					t.v1 = mesh.positions[mesh.indices[i+1]];
-					t.v2 = mesh.positions[mesh.indices[i+2]];
+				int i2{ i * 3 };
+				t.v0 = mesh.positions[mesh.indices[i2]];
+				t.v1 = mesh.positions[mesh.indices[i2 + 1]];
+				t.v2 = mesh.positions[mesh.indices[i2 + 2]];
+					
+				t.normal = mesh.normals[mesh.indices[i2]];
+				t.materialIndex = mesh.materialIndex;
+				t.cullMode = mesh.cullMode;
 
-					t.materialIndex = mesh.materialIndex;
-					t.normal = mesh.normals[mesh.indices[i]];
-					t.cullMode = mesh.cullMode;
-					if (HitTest_Triangle(t, ray, hitRecord, ignoreHitRecord)) {
-						return true;
+				if (HitTest_Triangle(t, ray, temp, ignoreHitRecord)) {
+					if(ignoreHitRecord) return true;
+
+					if (hitRecord.didHit && temp.t < distance) {
+						distance = temp.t;
+						hitRecord = temp;
 					}
 				}
 			}
-			return false;
+			
+			return hitRecord.didHit;
 		}
 
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray)

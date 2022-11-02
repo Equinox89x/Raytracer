@@ -67,13 +67,16 @@ int main(int argc, char* args[])
 				isLooping = false;
 				break;
 			case SDL_KEYUP:
-				if(e.key.keysym.scancode == SDL_SCANCODE_X)
+				if (e.key.keysym.scancode == SDL_SCANCODE_X)
 					takeScreenshot = true;
 				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
 					pRenderer->ToggleShadows();
 				if (e.key.keysym.scancode == SDL_SCANCODE_F3)
 					pRenderer->CycleLightingMode();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F6)
+					pTimer->StartBenchmark();
 				break;
+
 			}
 		}
 

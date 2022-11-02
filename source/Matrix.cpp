@@ -123,6 +123,7 @@ namespace dae {
 
 	Matrix Matrix::CreateRotationX(float pitch)
 	{
+		pitch *= PI / 180;
 		Vector3 first{ 1,0,0 };
 		Vector3 second{ 0, cosf(pitch), -sinf(pitch) };
 		Vector3 third { 0, sinf(pitch),  cosf(pitch) };

@@ -19,7 +19,6 @@ namespace dae
 		{
 		}
 
-
 		Vector3 origin{};
 		float fovAngle{90.f};
 
@@ -30,8 +29,11 @@ namespace dae
 
 		float totalPitch{0.f};
 		float totalYaw{0.f};
-		const float rotationSpeed{ 0.5f };
+		const float rotationSpeed{ 5.f };
 		const float movementSpeed{ 5.f };
+
+		bool isLeftHeld{ false };
+		bool isRightHeld{ false };
 
 		Matrix cameraToWorld{};
 
@@ -54,29 +56,46 @@ namespace dae
 		{
 			const float deltaTime = pTimer->GetElapsed();
 
-			//Keyboard Input
-			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
-			origin.z += pKeyboardState[SDL_SCANCODE_W] * deltaTime * movementSpeed;
-			origin.y -= pKeyboardState[SDL_SCANCODE_LCTRL] * deltaTime * movementSpeed;
-			origin.x -= pKeyboardState[SDL_SCANCODE_A] * deltaTime * movementSpeed;
-
-			origin.z -= pKeyboardState[SDL_SCANCODE_S] * deltaTime * movementSpeed;
-			origin.y += pKeyboardState[SDL_SCANCODE_SPACE] * deltaTime * movementSpeed;
-			origin.x += pKeyboardState[SDL_SCANCODE_D] * deltaTime * movementSpeed;
-
-			fovAngle -= pKeyboardState[SDL_SCANCODE_UP] * deltaTime * movementSpeed;
-			fovAngle += pKeyboardState[SDL_SCANCODE_DOWN] * deltaTime * movementSpeed;
-
 			//Mouse Input
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
-			if (SDL_BUTTON(mouseState) == 1) {
-				totalPitch -= mouseX * deltaTime * rotationSpeed;
-				totalYaw -= mouseY * deltaTime * rotationSpeed;
-				Matrix finalRot{ Matrix::CreateRotation(totalYaw, totalPitch, 1) };
-				forward = finalRot.TransformVector(Vector3::UnitZ);
-				forward.Normalize();
+
+			const float rotSpeed{ deltaTime * rotationSpeed };
+			const Vector3 forwardSpeed{ forward * deltaTime * movementSpeed };
+			const Vector3 sideSpeed{ right * deltaTime * movementSpeed };
+			const Vector3 upSpeed{ up * deltaTime * movementSpeed };
+
+			if (SDL_BUTTON(mouseState) == 8) {
+				totalPitch -= mouseX * rotSpeed;
+				totalYaw -= mouseY * rotSpeed;
 			}
+			else if (SDL_BUTTON(mouseState) == 1) {
+				origin += mouseY * forwardSpeed;
+			}
+			else if (SDL_BUTTON(mouseState) == 16) {
+				origin += mouseY * upSpeed;
+			}
+
+			//reset totalPitch to 0 degrees if it reaches a full spin(360 deg)
+			if (totalPitch > 350 || totalPitch < -360) totalPitch = 0;
+			Matrix finalRot{ Matrix::CreateRotation(totalYaw, totalPitch, 1) };
+
+			//Keyboard Input
+			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
+			
+			origin += pKeyboardState[SDL_SCANCODE_W] * forwardSpeed;
+			origin -= pKeyboardState[SDL_SCANCODE_S] * forwardSpeed;
+
+			origin += pKeyboardState[SDL_SCANCODE_SPACE] * upSpeed;
+			origin -= pKeyboardState[SDL_SCANCODE_LCTRL] * upSpeed;
+
+			//reverse axis when camera is looking behind, and apply correct addition/subtraction
+			totalPitch > 159.f || totalPitch < -159.f ? origin -= pKeyboardState[SDL_SCANCODE_D] * sideSpeed : origin += pKeyboardState[SDL_SCANCODE_D] * sideSpeed;
+			totalPitch > 159.f || totalPitch < -159.f ? origin += pKeyboardState[SDL_SCANCODE_A] * sideSpeed : origin -= pKeyboardState[SDL_SCANCODE_A] * sideSpeed;
+
+
+			forward = finalRot.TransformVector(Vector3::UnitZ);
+			forward.Normalize();
 		}
 	};
 }

@@ -9,8 +9,8 @@ struct SDL_Surface;
 namespace dae
 {
 	class Scene;
-	class Matrix;
-	class Camera;
+	struct Matrix;
+	struct Camera;
 	class Material;
 	struct Light;
 
