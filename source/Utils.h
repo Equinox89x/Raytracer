@@ -50,9 +50,9 @@ namespace dae
 
 			float A{ Vector3::Dot(ray.direction, ray.direction) };
 			float B{ Vector3::Dot((2 * ray.direction), (raySphereOrigin)) };
-			float C{ Vector3::Dot((raySphereOrigin), (raySphereOrigin)) - powf(sphere.radius,2) };
+			float C{ Vector3::Dot((raySphereOrigin), (raySphereOrigin)) - Square(sphere.radius) };
 
-			float discriminant{ powf(B,2) - 4 * A * C };
+			float discriminant{ Square(B) - 4 * A * C };
 			float discriminantsqrt{ sqrtfc(discriminant) };
 
 			float tMax{ (-B + discriminantsqrt) / 2 * A };
@@ -118,77 +118,123 @@ namespace dae
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			Vector3 a = triangle.v1 - triangle.v0;
-			Vector3 b = triangle.v2 - triangle.v0;
-			Vector3 normal = Vector3::Cross(a, b);
-			float result{ Vector3::Dot(normal, ray.direction) };
+			//faster with bunny scene, same for referrence scene
+			#pragma region Moller Trumbore
+			const float EPSILON = 0.0000001f;
+			Vector3 edge1{ triangle.v1 - triangle.v0 };
+			Vector3 edge2{ triangle.v2 - triangle.v0 };
 
-			TriangleCullMode currentCulling = triangle.cullMode;
-			if (ignoreHitRecord) {
-				//change cullmode if it's a shadow
-				currentCulling == TriangleCullMode::BackFaceCulling ? 
-					currentCulling = TriangleCullMode::FrontFaceCulling : 
-					currentCulling = TriangleCullMode::BackFaceCulling;
-			}
-			
-			switch (currentCulling)
-			{
-				case TriangleCullMode::BackFaceCulling:
-					if (result > 0)
-					{
-						return false;
-					}
-					break;
-				case TriangleCullMode::FrontFaceCulling:
-					if (result < 0)
-					{
-						return false;
-					}
-					break;
+			Vector3 h{ Vector3::Cross(ray.direction, edge2) };
+			float a{ Vector3::Dot(edge1, h) };
+			if (a > EPSILON && a < EPSILON) {
+				return false;    // This ray is parallel to this triangle.
 			}
 
-			if (Vector3::Dot(ray.direction, normal) == 0)
-			{
+			float f{ 1.0f / a };
+			Vector3 s{ ray.origin - triangle.v0 };
+			float u{ f * Vector3::Dot(s, h) };
+			if (u < 0.0f || u > 1.0f) {
 				return false;
 			}
 
-			Vector3 center{ (triangle.v0 + triangle.v1 + triangle.v2) / 3 };
-			Vector3 L = center - ray.origin;
-			float t = Vector3::Dot(L, normal) / Vector3::Dot(ray.direction, normal);
-			if (t < ray.min || t > ray.max)
-			{
+			Vector3 q{ Vector3::Cross(s, edge1) };
+			float v{ f * Vector3::Dot(ray.direction, q) };
+			if (v < 0.0f || u + v > 1.0f) {
 				return false;
 			}
 
-			Vector3 edgeA = triangle.v1 - triangle.v0;
-			Vector3 p = ray.origin + (t * ray.direction);
-			Vector3 pointToSide = p - triangle.v0;
-			if (Vector3::Dot(normal, Vector3::Cross(edgeA, pointToSide)) < 0)
+			// At this stage we can compute t to find out where the intersection point is on the line.
+			float t{ f * Vector3::Dot(edge2, q) };
+			// ray intersection
+			if (t > ray.min && t < ray.max) 
 			{
-				return false;
+				if (ignoreHitRecord) return true;
+				hitRecord.materialIndex = triangle.materialIndex;
+				hitRecord.normal = Vector3::Cross(edge1, edge2);
+				hitRecord.origin = ray.origin + (t * ray.direction);
+				hitRecord.didHit = true;
+				hitRecord.t = t;
+				return true;
 			}
 
-			Vector3 edgeB = triangle.v2 - triangle.v1;
-			pointToSide = p - triangle.v1;
-			if (Vector3::Dot(normal, Vector3::Cross(edgeB, pointToSide)) < 0)
-			{
-				return false;
-			}
+			// This means that there is a line intersection but not a ray intersection.
+			return false;
+			#pragma endregion
 
-			Vector3 edgeC = triangle.v0 - triangle.v2;
-			pointToSide = p - triangle.v2;
-			if (Vector3::Dot(normal, Vector3::Cross(edgeC, pointToSide)) < 0)
-			{
-				return false;
-			}
 
-			if (ignoreHitRecord) return true;
-			hitRecord.materialIndex = triangle.materialIndex;
-			hitRecord.normal = normal;
-			hitRecord.origin = p;
-			hitRecord.didHit = true;
-			hitRecord.t = t;
-			return true;
+			#pragma region Method from classes
+			//Vector3 a = triangle.v1 - triangle.v0;
+			//Vector3 b = triangle.v2 - triangle.v0;
+			//Vector3 normal = Vector3::Cross(a, b);
+			//float result{ Vector3::Dot(normal, ray.direction) };
+
+			//TriangleCullMode currentCulling = triangle.cullMode;
+			//if (ignoreHitRecord) {
+			//	//change cullmode if it's a shadow
+			//	currentCulling == TriangleCullMode::BackFaceCulling ? 
+			//		currentCulling = TriangleCullMode::FrontFaceCulling : 
+			//		currentCulling = TriangleCullMode::BackFaceCulling;
+			//}
+			//
+			//switch (currentCulling)
+			//{
+			//	case TriangleCullMode::BackFaceCulling:
+			//		if (result > 0)
+			//		{
+			//			return false;
+			//		}
+			//		break;
+			//	case TriangleCullMode::FrontFaceCulling:
+			//		if (result < 0)
+			//		{
+			//			return false;
+			//		}
+			//		break;
+			//}
+
+			//if (Vector3::Dot(ray.direction, normal) == 0)
+			//{
+			//	return false;
+			//}
+
+			//Vector3 center{ (triangle.v0 + triangle.v1 + triangle.v2) / 3 };
+			//Vector3 L{ center - ray.origin };
+			//float t{ Vector3::Dot(L, normal) / Vector3::Dot(ray.direction, normal) };
+			//if (t < ray.min || t > ray.max)
+			//{
+			//	return false;
+			//}
+
+			//Vector3 edgeA{ triangle.v1 - triangle.v0 };
+			//Vector3 origin{ ray.origin + (t * ray.direction) };
+			//Vector3 pointToSide{ origin - triangle.v0 };
+			//if (Vector3::Dot(normal, Vector3::Cross(edgeA, pointToSide)) < 0)
+			//{
+			//	return false;
+			//}
+
+			//Vector3 edgeB{ triangle.v2 - triangle.v1 };
+			//pointToSide = origin - triangle.v1;
+			//if (Vector3::Dot(normal, Vector3::Cross(edgeB, pointToSide)) < 0)
+			//{
+			//	return false;
+			//}
+
+			//Vector3 edgeC{ triangle.v0 - triangle.v2 };
+			//pointToSide = origin - triangle.v2;
+			//if (Vector3::Dot(normal, Vector3::Cross(edgeC, pointToSide)) < 0)
+			//{
+			//	return false;
+			//}
+
+			//if (ignoreHitRecord) return true;
+			//hitRecord.materialIndex = triangle.materialIndex;
+			//hitRecord.normal = normal;
+			//hitRecord.origin = origin;
+			//hitRecord.didHit = true;
+			//hitRecord.t = t;
+			//return true;
+			#pragma endregion
 		}
 
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)

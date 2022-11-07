@@ -140,8 +140,8 @@ namespace dae {
 
 	Matrix Matrix::CreateRotation(const Vector3& r)
 	{		
-		Matrix first { CreateRotationX(r.x) };
-		Matrix second{ CreateRotationY(r.y) };
+		Matrix first{ CreateRotationY(r.y) };
+		Matrix second { CreateRotationX(r.x) };
 		Matrix third { CreateRotationZ(r.z) };
 		return third * second * first;
 	}

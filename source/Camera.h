@@ -66,14 +66,14 @@ namespace dae
 			const Vector3 upSpeed{ up * deltaTime * movementSpeed };
 
 			if (SDL_BUTTON(mouseState) == 8) {
-				totalPitch -= mouseX * rotSpeed;
-				totalYaw -= mouseY * rotSpeed;
+				totalPitch -= static_cast<float>(mouseX) * rotSpeed;
+				totalYaw -= static_cast<float>(mouseY) * rotSpeed;
 			}
 			else if (SDL_BUTTON(mouseState) == 1) {
-				origin += mouseY * forwardSpeed;
+				origin += static_cast<float>(mouseY) * forwardSpeed;
 			}
 			else if (SDL_BUTTON(mouseState) == 16) {
-				origin += mouseY * upSpeed;
+				origin += static_cast<float>(mouseY) * upSpeed;
 			}
 
 			//reset totalPitch to 0 degrees if it reaches a full spin(360 deg)
