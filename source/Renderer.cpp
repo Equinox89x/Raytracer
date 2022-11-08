@@ -131,7 +131,7 @@ void Renderer::Render(Scene* pScene) const
 	const float screenHeight{ static_cast<float>(m_Height) };
 	const float aspectRatio{ screenWidth / screenHeight };
 
-	const float fov{ tan(camera.fovAngle / 2) };
+	const float fov{ tanf(camera.fovAngle * TO_RADIANS / 2.f) };
 
 	const uint32_t numPixels = m_Width * m_Height ;
 

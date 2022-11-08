@@ -49,14 +49,6 @@ namespace dae {
 			}
 		}
 
-		for (int i = 0; i < m_TriangleGeometries.size(); i++)
-		{
-			GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp);
-			if (temp.t < smallestRecord.t) {
-				smallestRecord = temp;
-			}
-		}
-
 		for (int i = 0; i < m_TriangleMeshGeometries.size(); i++)
 		{
 			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp);
@@ -70,9 +62,9 @@ namespace dae {
 
 	bool Scene::DoesHit(const Ray& ray) const {
 
+		HitRecord temp{};
 		for (int i{ 0 }; i < m_SphereGeometries.size(); i++)
 		{
-			HitRecord temp{};
 			if (GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, temp, true)) {
 				return true;
 			}
@@ -80,23 +72,13 @@ namespace dae {
 
 		for (int i{ 0 }; i < m_PlaneGeometries.size(); i++)
 		{
-			HitRecord temp{};
 			if(GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp, true)) {
-				return true;
-			}
-		}
-
-		for (int i{ 0 }; i < m_TriangleGeometries.size(); i++)
-		{
-			HitRecord temp{};
-			if(GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp, true)) {
 				return true;
 			}
 		}
 
 		for (int i{ 0 }; i < m_TriangleMeshGeometries.size(); i++)
 		{
-			HitRecord temp{};
 			if(GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp, true)) {
 				return true;
 			}
