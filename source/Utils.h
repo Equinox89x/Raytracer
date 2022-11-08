@@ -11,11 +11,11 @@ namespace dae
 {
 	namespace GeometryUtils
 	{
-
 		#pragma region Sphere HitTest
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
+
 			//is faster
 			#pragma region Geometric way
 			Vector3 TC{ sphere.origin - ray.origin };
@@ -37,7 +37,8 @@ namespace dae
 				hitRecord.materialIndex = sphere.materialIndex;
 				hitRecord.t = t;
 				hitRecord.origin = I;
-				hitRecord.normal = (I - sphere.origin).Normalized();
+				//normalise is dividing by length, and the radius is the length
+				hitRecord.normal = (I - sphere.origin)/sphere.radius;
 				return true;
 
 			}
@@ -161,6 +162,38 @@ namespace dae
 			return false;
 			#pragma endregion
 
+			#pragma region Badouel
+			//Vector3 edge1{ triangle.v1 - triangle.v0 };
+			//Vector3 edge2{ triangle.v2 - triangle.v0 };
+			//Vector3 normal{ Vector3::Cross(edge1, edge2) };
+
+			//if (Vector3::Dot(normal, ray.direction) == 0) {
+			//	return false;
+			//}
+
+			////float d{ Vector3::Dot(-triangle.v0, normal) };
+
+			//Vector3 center{ (triangle.v0 + triangle.v1 + triangle.v2) / 3 };
+			//Vector3 L{ center - ray.origin };
+			//float t{ Vector3::Dot(L, normal) / Vector3::Dot(ray.direction, normal) };
+			////float t{ -(((ray.direction + Vector3::Dot(normal, ray.origin))) / Vector3::Dot(normal, ray.direction)) };
+			//if (t <= 0) {
+			//	return false;
+			//}
+
+			//if (!(t > ray.min && t < ray.max)) {
+			//	return false;
+			//}
+
+			//std::max(normal.x, normal.y, normal.y);
+			//std::max(normal.x, normal.y, normal.y);
+			//std::max(normal.x, normal.y, normal.y);
+
+			//if (alpha >= 0 && beta >= 0 && alpha + beta <= 1) {
+			//	return true;
+			//}
+			//return false;
+			#pragma endregion
 
 			#pragma region Method from classes
 			//Vector3 a = triangle.v1 - triangle.v0;

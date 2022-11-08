@@ -46,12 +46,13 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 	ColorRGB finalColor{};
 
 	HitRecord closestHit{};
+
+	int lightsSize{ static_cast<int>(lights.size()) };
 	pScene->GetClosestHit(viewRay, closestHit);
 	const auto material{ materials[closestHit.materialIndex] };
 
 	if (closestHit.didHit) {
 
-		int lightsSize{ static_cast<int>(lights.size()) };
 		for (int i = 0; i < lightsSize; i++)
 		{
 			//check if point we hit can see light

@@ -31,27 +31,19 @@ namespace dae {
 	{
 		HitRecord smallestRecord{ };
 		smallestRecord.t = FLT_MAX;
-		bool gothit{ false };
 
 		HitRecord temp{};
 		for (int i = 0; i < m_SphereGeometries.size(); i++)
 		{
 			GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, temp);
-
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
-				gothit = true;
 			}
-		}
-		if (gothit) {
-			closestHit = smallestRecord;
-			return;
 		}
 		
 		for (int i = 0; i < m_PlaneGeometries.size(); i++)
 		{
 			GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp);
-
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
@@ -60,7 +52,6 @@ namespace dae {
 		for (int i = 0; i < m_TriangleGeometries.size(); i++)
 		{
 			GeometryUtils::HitTest_Triangle(m_TriangleGeometries[i], ray, temp);
-
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
