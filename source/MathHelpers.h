@@ -28,20 +28,4 @@ namespace dae
 	{
 		return abs(a - b) < epsilon;
 	}
-
-	#pragma region Compile time sqrt
-	float constexpr sqrtNewtonRaphson(float x, float curr, float prev)
-	{
-		return curr == prev
-			? curr
-			: sqrtNewtonRaphson(x, 0.5f * (curr + x / curr), curr);
-	}
-
-	float constexpr sqrtfc(float x)
-	{
-		return x >= 0 && x < std::numeric_limits<float>::infinity()
-			? sqrtNewtonRaphson(x, x, 0)
-			: std::numeric_limits<float>::quiet_NaN();
-	}
-	#pragma endregion
 }

@@ -121,15 +121,11 @@ namespace dae
 		{
 			//faster with bunny scene, same for referrence scene
 			#pragma region Moller Trumbore
-			const float EPSILON = 0.0000001f;
 			Vector3 edge1{ triangle.v1 - triangle.v0 };
 			Vector3 edge2{ triangle.v2 - triangle.v0 };
 
 			Vector3 h{ Vector3::Cross(ray.direction, edge2) };
 			float a{ Vector3::Dot(edge1, h) };
-			if (a > EPSILON && a < EPSILON) {
-				return false;    // This ray is parallel to this triangle.
-			}
 
 			float f{ 1.0f / a };
 			Vector3 s{ ray.origin - triangle.v0 };
@@ -149,9 +145,37 @@ namespace dae
 			// ray intersection
 			if (t > ray.min && t < ray.max) 
 			{
+				//change cullmode if it's a shadow (ignorehitrecord = true)
+				Vector3 normal = Vector3::Cross(edge1, edge2);
+				TriangleCullMode currentCulling = triangle.cullMode;
+				if (ignoreHitRecord) {
+					if (currentCulling == TriangleCullMode::BackFaceCulling) {
+						currentCulling = TriangleCullMode::FrontFaceCulling;
+					}
+					else if (currentCulling == TriangleCullMode::FrontFaceCulling) {
+						currentCulling = TriangleCullMode::BackFaceCulling;
+					}
+				}
+
+				switch (currentCulling)
+				{
+				case TriangleCullMode::BackFaceCulling:
+					if (Vector3::Dot(normal, ray.direction) > 0)
+					{
+						return false;
+					}
+					break;
+				case TriangleCullMode::FrontFaceCulling:
+					if (Vector3::Dot(normal, ray.direction) < 0)
+					{
+						return false;
+					}
+					break;
+				}
+
 				if (ignoreHitRecord) return true;
 				hitRecord.materialIndex = triangle.materialIndex;
-				hitRecord.normal = Vector3::Cross(edge1, edge2);
+				hitRecord.normal = normal;
 				hitRecord.origin = ray.origin + (t * ray.direction);
 				hitRecord.didHit = true;
 				hitRecord.t = t;
@@ -171,12 +195,9 @@ namespace dae
 			//	return false;
 			//}
 
-			////float d{ Vector3::Dot(-triangle.v0, normal) };
-
-			//Vector3 center{ (triangle.v0 + triangle.v1 + triangle.v2) / 3 };
-			//Vector3 L{ center - ray.origin };
-			//float t{ Vector3::Dot(L, normal) / Vector3::Dot(ray.direction, normal) };
-			////float t{ -(((ray.direction + Vector3::Dot(normal, ray.origin))) / Vector3::Dot(normal, ray.direction)) };
+			//float d{ Vector3::Dot(-triangle.v0, normal) };
+			//float t{ -(((d + Vector3::Dot(normal, ray.origin))) / Vector3::Dot(normal, ray.direction)) };
+			//Vector3 intersectPoint{ ray.origin + (t * ray.direction) }; //P
 			//if (t <= 0) {
 			//	return false;
 			//}
@@ -185,9 +206,28 @@ namespace dae
 			//	return false;
 			//}
 
-			//std::max(normal.x, normal.y, normal.y);
-			//std::max(normal.x, normal.y, normal.y);
-			//std::max(normal.x, normal.y, normal.y);
+			//float u{ intersectPoint.x - triangle.v0.x };
+			//float v{ intersectPoint.y - triangle.v0.y };			
+			//
+			//float u1{ triangle.v1.x - triangle.v0.x};
+			//float u2{ triangle.v2.x - triangle.v0.x };
+			//float v2{ triangle.v1.y - triangle.v0.y };
+			//float v1{ triangle.v2.y - triangle.v0.y };
+
+			//float beta{};
+			//float alpha{};
+			//if (u1 == 0) {
+			//	beta = u / u2;
+			//	if (beta >= 0 && beta <= 1) {
+			//		alpha = (v - beta * v2) / v1;
+			//	}
+			//}
+			//else {
+			//	beta = (v * u1 - u * v1) / (v2 * u1 - u2 * v1);
+			//	if (beta >= 0 && beta <= 1) {
+			//		alpha = (u - beta * u2) / u1;
+			//	}
+			//}
 
 			//if (alpha >= 0 && beta >= 0 && alpha + beta <= 1) {
 			//	return true;
@@ -199,31 +239,6 @@ namespace dae
 			//Vector3 a = triangle.v1 - triangle.v0;
 			//Vector3 b = triangle.v2 - triangle.v0;
 			//Vector3 normal = Vector3::Cross(a, b);
-			//float result{ Vector3::Dot(normal, ray.direction) };
-
-			//TriangleCullMode currentCulling = triangle.cullMode;
-			//if (ignoreHitRecord) {
-			//	//change cullmode if it's a shadow
-			//	currentCulling == TriangleCullMode::BackFaceCulling ? 
-			//		currentCulling = TriangleCullMode::FrontFaceCulling : 
-			//		currentCulling = TriangleCullMode::BackFaceCulling;
-			//}
-			//
-			//switch (currentCulling)
-			//{
-			//	case TriangleCullMode::BackFaceCulling:
-			//		if (result > 0)
-			//		{
-			//			return false;
-			//		}
-			//		break;
-			//	case TriangleCullMode::FrontFaceCulling:
-			//		if (result < 0)
-			//		{
-			//			return false;
-			//		}
-			//		break;
-			//}
 
 			//if (Vector3::Dot(ray.direction, normal) == 0)
 			//{
@@ -260,6 +275,31 @@ namespace dae
 			//	return false;
 			//}
 
+			//float result{ Vector3::Dot(normal, ray.direction) };
+			//TriangleCullMode currentCulling = triangle.cullMode;
+			//if (ignoreHitRecord) {
+			//	//change cullmode if it's a shadow
+			//	currentCulling == TriangleCullMode::BackFaceCulling ?
+			//		currentCulling = TriangleCullMode::FrontFaceCulling :
+			//		currentCulling = TriangleCullMode::BackFaceCulling;
+			//}
+
+			//switch (currentCulling)
+			//{
+			//case TriangleCullMode::BackFaceCulling:
+			//	if (result > 0)
+			//	{
+			//		return false;
+			//	}
+			//	break;
+			//case TriangleCullMode::FrontFaceCulling:
+			//	if (result < 0)
+			//	{
+			//		return false;
+			//	}
+			//	break;
+			//}
+
 			//if (ignoreHitRecord) return true;
 			//hitRecord.materialIndex = triangle.materialIndex;
 			//hitRecord.normal = normal;
@@ -277,7 +317,7 @@ namespace dae
 		}
 		#pragma endregion
 
-		#pragma region TriangeMesh HitTest
+		#pragma region TriangleMesh HitTest
 		inline bool SlabTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray) {
 			float tx1{ (mesh.transformedMinAABB.x - ray.origin.x) / ray.direction.x };
 			float tx2{ (mesh.transformedMaxAABB.x - ray.origin.x) / ray.direction.x };

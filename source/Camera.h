@@ -65,14 +65,15 @@ namespace dae
 			const Vector3 sideSpeed{ right * deltaTime * movementSpeed };
 			const Vector3 upSpeed{ up * deltaTime * movementSpeed };
 
-			if (SDL_BUTTON(mouseState) == 8) {
+			if (SDL_BUTTON(mouseState) == 8) { //RMB
 				totalPitch -= static_cast<float>(mouseX) * rotSpeed;
 				totalYaw -= static_cast<float>(mouseY) * rotSpeed;
 			}
-			else if (SDL_BUTTON(mouseState) == 1) {
+			else if (SDL_BUTTON(mouseState) == 1) { //LMB
 				origin += static_cast<float>(mouseY) * forwardSpeed;
+				totalPitch -= static_cast<float>(mouseX) * rotSpeed;
 			}
-			else if (SDL_BUTTON(mouseState) == 16) {
+			else if (SDL_BUTTON(mouseState) == 16) { //LMB + RMB
 				origin += static_cast<float>(mouseY) * upSpeed;
 			}
 
@@ -84,7 +85,9 @@ namespace dae
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
 			
 			origin += pKeyboardState[SDL_SCANCODE_W] * forwardSpeed;
+			origin += pKeyboardState[SDL_SCANCODE_UP] * forwardSpeed;
 			origin -= pKeyboardState[SDL_SCANCODE_S] * forwardSpeed;
+			origin -= pKeyboardState[SDL_SCANCODE_DOWN] * forwardSpeed;
 
 			origin += pKeyboardState[SDL_SCANCODE_SPACE] * upSpeed;
 			origin -= pKeyboardState[SDL_SCANCODE_LCTRL] * upSpeed;
@@ -92,6 +95,9 @@ namespace dae
 			//reverse axis when camera is looking behind, and apply correct addition/subtraction
 			totalPitch > 159.f || totalPitch < -159.f ? origin -= pKeyboardState[SDL_SCANCODE_D] * sideSpeed : origin += pKeyboardState[SDL_SCANCODE_D] * sideSpeed;
 			totalPitch > 159.f || totalPitch < -159.f ? origin += pKeyboardState[SDL_SCANCODE_A] * sideSpeed : origin -= pKeyboardState[SDL_SCANCODE_A] * sideSpeed;
+			
+			totalPitch > 159.f || totalPitch < -159.f ? origin -= pKeyboardState[SDL_SCANCODE_RIGHT] * sideSpeed : origin += pKeyboardState[SDL_SCANCODE_RIGHT] * sideSpeed;
+			totalPitch > 159.f || totalPitch < -159.f ? origin += pKeyboardState[SDL_SCANCODE_LEFT] * sideSpeed : origin -= pKeyboardState[SDL_SCANCODE_LEFT] * sideSpeed;
 
 
 			forward = finalRot.TransformVector(Vector3::UnitZ);
