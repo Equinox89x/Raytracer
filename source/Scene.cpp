@@ -33,25 +33,25 @@ namespace dae {
 		smallestRecord.t = FLT_MAX;
 
 		HitRecord temp{};
-		for (int i = 0; i < m_SphereGeometries.size(); i++)
+		for (const Sphere& sphere : m_SphereGeometries)
 		{
-			GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, temp);
+			GeometryUtils::HitTest_Sphere(sphere, ray, temp);
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
 		}
 		
-		for (int i = 0; i < m_PlaneGeometries.size(); i++)
+		for (const Plane& plane : m_PlaneGeometries)
 		{
-			GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp);
+			GeometryUtils::HitTest_Plane(plane, ray, temp);
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
 		}
 
-		for (int i = 0; i < m_TriangleMeshGeometries.size(); i++)
+		for (const TriangleMesh& mesh : m_TriangleMeshGeometries)
 		{
-			GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp);
+			GeometryUtils::HitTest_TriangleMesh(mesh, ray, temp);
 			if (temp.t < smallestRecord.t) {
 				smallestRecord = temp;
 			}
@@ -63,23 +63,23 @@ namespace dae {
 	bool Scene::DoesHit(const Ray& ray) const {
 
 		HitRecord temp{};
-		for (int i{ 0 }; i < m_SphereGeometries.size(); i++)
+		for (const Sphere& sphere : m_SphereGeometries)
 		{
-			if (GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, temp, true)) {
+			if (GeometryUtils::HitTest_Sphere(sphere, ray, temp, true)) {
 				return true;
 			}
 		}
 
-		for (int i{ 0 }; i < m_PlaneGeometries.size(); i++)
+		for (const Plane& plane : m_PlaneGeometries)
 		{
-			if(GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, temp, true)) {
+			if(GeometryUtils::HitTest_Plane(plane, ray, temp, true)) {
 				return true;
 			}
 		}
 
-		for (int i{ 0 }; i < m_TriangleMeshGeometries.size(); i++)
+		for (const TriangleMesh& mesh : m_TriangleMeshGeometries)
 		{
-			if(GeometryUtils::HitTest_TriangleMesh(m_TriangleMeshGeometries[i], ray, temp, true)) {
+			if(GeometryUtils::HitTest_TriangleMesh(mesh, ray, temp, true)) {
 				return true;
 			}
 		}

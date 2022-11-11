@@ -53,11 +53,11 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 
 	if (closestHit.didHit) {
 
-		for (int i = 0; i < lightsSize; i++)
+		for (const Light& light : lights)
 		{
 			//check if point we hit can see light
 			//if not, go to next lightand skip light calculation
-			Vector3 direction{ LightUtils::GetDirectionToLight(lights[i],closestHit.origin) };
+			Vector3 direction{ LightUtils::GetDirectionToLight(light,closestHit.origin) };
 			Vector3 normalisedDirection{ direction.Normalized() };
 			float LCL{ Vector3::Dot(closestHit.normal.Normalized(), normalisedDirection)};
 			if (LCL < 0) {
@@ -83,7 +83,7 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 				break;
 			}
 			case LightingMode::Radiance: {
-				ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
+				ColorRGB eRGB{ LightUtils::GetRadiance(light, closestHit.origin) };
 				finalColor += eRGB;
 				break;
 			}
@@ -93,13 +93,13 @@ void Renderer::RenderPixel(Scene* pScene, uint32_t pixelIndex, float fov, float 
 			}
 			case LightingMode::Combined: {
 				ColorRGB BRDFrgb{ material->Shade(closestHit, lightRay.direction, viewRay.direction) };
-				ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
+				ColorRGB eRGB{ LightUtils::GetRadiance(light, closestHit.origin) };
 				finalColor += eRGB * BRDFrgb * LCL;
 				break;
 			}
 			default: {
 				ColorRGB BRDFrgb{ material->Shade(closestHit, lightRay.direction, viewRay.direction) };
-				ColorRGB eRGB{ LightUtils::GetRadiance(lights[i], closestHit.origin) };
+				ColorRGB eRGB{ LightUtils::GetRadiance(light, closestHit.origin) };
 				finalColor += eRGB * BRDFrgb * LCL;
 				break;
 			}

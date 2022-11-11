@@ -176,10 +176,10 @@ namespace dae
 				minAABB = positions[0];
 				maxAABB = positions[0];
 
-				for (size_t i = 0; i < size; i++)
+				for (const Vector3& position : positions)
 				{					
-					minAABB = Vector3::Min(positions[i], minAABB);
-					maxAABB = Vector3::Max(positions[i], maxAABB);
+					minAABB = Vector3::Min(position, minAABB);
+					maxAABB = Vector3::Max(position, maxAABB);
 				}
 			}
 		}
